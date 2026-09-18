@@ -1,0 +1,1137 @@
+/* ============================================================
+   consola.css — piel «Consola»
+   ============================================================
+
+   Capa de skin: NO sustituye a theme.css / hub.css / game.css, se pone
+   encima. Todo cuelga de `html[data-skin="consola"]`, así que quitar el
+   atributo devuelve el proyecto al neón original sin tocar nada más.
+
+   La idea es la del menú de una consola de sobremesa: fondo claro con un patrón de
+   puntos que deriva despacio, barra blanca arriba con el reloj, losetas
+   cuadradas con rebote elástico y una barra inferior que imita la pantalla
+   del GamePad. Dentro de la partida el lienzo del juego se queda oscuro
+   —como en una consola de verdad— y solo el chrome (marcador, pausa,
+   briefing, victoria) se viste de blanco.
+
+   Truco que se repite abajo: en vez de reescribir cada regla de color de
+   los paneles, se redefinen --ink / --ink-dim / --line DENTRO del panel.
+   Los hijos heredan las variables y todo el texto se recolorea solo.
+   ============================================================ */
+
+[data-skin="consola"] {
+  /* Con el Mac en modo oscuro, el navegador pinta los controles nativos
+     (deslizadores, barras de scroll, campos) en oscuro y quedan como manchas
+     negras dentro de un menú blanco. Esto los devuelve a claro. */
+  color-scheme: light;
+
+  /* Fondo y superficies */
+  --cn-bg-a: #f6fafd;
+  --cn-bg-b: #d9e7f0;
+  --cn-panel: #ffffff;
+  --cn-panel-2: #f1f6fa;
+  --cn-panel-3: #e7eef4;
+  --cn-line: #c8d8e3;
+  --cn-line-fuerte: #aec3d2;
+
+  /* Tinta. Los tres tonos están calculados sobre blanco, no elegidos a ojo:
+     el más claro llega a 4.9:1 y el medio a 6.8:1. Un gris "bonito" tipo
+     #9aa8b4 se queda en 2.4:1 y convierte en decorativo todo lo que marca
+     (la duración de un juego, la fecha, el marcador de rivalidad). */
+  --cn-ink: #333d47;
+  --cn-ink-dim: #4f5c68;
+  --cn-ink-faint: #64737f;
+
+  /* Azul de sistema */
+  --cn-blue: #00b7e4;
+  --cn-blue-dark: #0090bd;
+  --cn-blue-soft: #ddf3fb;
+
+  /* Relieve: la consola tiene todo un pelín "físico" — un borde inferior más
+     oscuro y una sombra corta bastan para que se lea como un botón. */
+  --cn-relieve: 0 2px 0 #c8d8e2, 0 12px 22px -14px #4d7a9166;
+  --cn-relieve-alto: 0 3px 0 #b9cbd8, 0 22px 34px -18px #3f6d8899;
+  --cn-rebote: cubic-bezier(0.34, 1.56, 0.64, 1);
+
+  --cn-font: ui-rounded, "SF Pro Rounded", "Hiragino Maru Gothic ProN",
+             "Varela Round", "Quicksand", -apple-system, "Helvetica Neue", sans-serif;
+}
+
+/* ============================================================
+   1. Fondo del menú
+   ============================================================ */
+
+[data-skin="consola"] body.hub {
+  background: linear-gradient(180deg, var(--cn-bg-a) 0%, var(--cn-bg-b) 100%);
+  background-attachment: fixed;
+  color: var(--cn-ink);
+  font-family: var(--cn-font);
+}
+
+/* Patrón de puntos que deriva. Va en un pseudo fijo y se mueve con
+   `transform`, no con background-position: así lo compone la GPU y no
+   repinta media pantalla en cada fotograma. */
+[data-skin="consola"] body.hub::before {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(circle at center, #ffffff 0 9px, transparent 10px),
+    radial-gradient(circle at center, #a9cde3 0 3px, transparent 3.6px),
+    radial-gradient(circle at center, #c3dcea 0 1.6px, transparent 2px);
+  background-size: 104px 104px, 104px 104px, 52px 52px;
+  background-position: 0 0, 0 0, 26px 26px;
+  opacity: 0.7;
+  animation: cn-deriva 60s linear infinite;
+}
+@keyframes cn-deriva { to { transform: translate3d(104px, 104px, 0); } }
+
+[data-skin="consola"] #hub {
+  position: relative;
+  z-index: 1;
+  background: none;
+  /* Hueco para la barra del GamePad, que va fija abajo. */
+  padding-bottom: 78px;
+}
+
+/* ============================================================
+   1 bis. Los colores de jugador como TINTA
+   ------------------------------------------------------------
+   Los perfiles traen colores pensados para brillar sobre negro. El cian
+   #00e5ff sobre blanco da 1.6:1 —es decir, no se lee— y con él caían el
+   nombre del jugador 2, su marcador, su chuleta de teclas y su columna del
+   briefing. La piel no le cambia el color a nadie: solo oscurece el tono
+   cuando se usa como TEXTO sobre una superficie clara. Se mezcla en oklab
+   porque bajar la luminosidad ahí conserva la saturación, y el cian sigue
+   siendo cian en vez de volverse gris azulado.
+
+   El 40% no es un número a ojo: es el punto en el que los DIEZ colores de
+   perfil de storage.js pasan de 4.8:1 sobre blanco, incluidos los tres que
+   más cuesta oscurecer (blanco 4.85, lima 5.43, menta 5.58). Si algún día se
+   añade un color a la paleta, hay que volver a medir este número.
+
+   Donde el color es FONDO (pastillas, palanca, tecla pulsada) se usa crudo.
+   ============================================================ */
+
+[data-skin="consola"] {
+  --p1-tinta: color-mix(in oklab, var(--p1) 40%, #0e2530);
+  --p2-tinta: color-mix(in oklab, var(--p2) 40%, #06222c);
+}
+
+/* Escenario: nombre del jugador en la chuleta de teclas e historial. */
+[data-skin="consola"] .esc-controles .tecla-grupo b { color: color-mix(in oklab, var(--tc) 40%, #0a2430); }
+[data-skin="consola"] .esc-historial .h1 { color: var(--p1-tinta); }
+[data-skin="consola"] .esc-historial .h2 { color: var(--p2-tinta); }
+
+/* Rivalidad de la cabecera. */
+[data-skin="consola"] .riv-p1 .riv-num { color: var(--p1-tinta); }
+[data-skin="consola"] .riv-p2 .riv-num { color: var(--p2-tinta); }
+
+/* Marcador de la partida, sobre la banda blanca. */
+[data-skin="consola"] .sb-p1 .sb-score { color: var(--p1-tinta); }
+[data-skin="consola"] .sb-p2 .sb-score { color: var(--p2-tinta); }
+
+/* Columnas de "quién es quién" del briefing y de la pausa. */
+[data-skin="consola"] .briefing-quien h3,
+[data-skin="consola"] .pausa-col h4 { color: color-mix(in oklab, var(--c) 40%, #0a2430); }
+[data-skin="consola"] .briefing-col,
+[data-skin="consola"] .pausa-col { border-color: color-mix(in oklab, var(--c) 34%, #ffffff); }
+
+/* Tarjeta de victoria. */
+[data-skin="consola"] .win-name { color: color-mix(in oklab, var(--win) 40%, #0a2430); }
+
+/* Mando: el rótulo del jugador es una pastilla de su color, así que ahí lo
+   que hay que arreglar es la letra encima, no el fondo. */
+[data-skin="consola"] .mando-quien { color: #10222c; }
+[data-skin="consola"] .secreto h3 { color: color-mix(in oklab, var(--yo, var(--p1)) 40%, #0a2430); }
+
+/* ============================================================
+   2. Primitivas: botones, chips, teclas, interruptores, campos
+   ============================================================ */
+
+[data-skin="consola"] .btn {
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffffff, #eaf1f6);
+  border: 1px solid var(--cn-line-fuerte);
+  border-bottom-width: 2px;
+  color: var(--cn-ink);
+  font-family: var(--cn-font);
+  font-weight: 600;
+  letter-spacing: 0;
+  box-shadow: 0 1px 0 #ffffff inset;
+}
+[data-skin="consola"] .btn:hover {
+  background: linear-gradient(180deg, #ffffff, #e0edf5);
+  border-color: var(--cn-blue);
+  color: var(--cn-blue-dark);
+  transform: translateY(-1px);
+}
+[data-skin="consola"] .btn:active { transform: translateY(1px); border-bottom-width: 1px; }
+[data-skin="consola"] .btn.primary,
+[data-skin="consola"] .btn.activo {
+  background: linear-gradient(180deg, #35d3f5, var(--cn-blue) 55%, var(--cn-blue-dark));
+  border-color: var(--cn-blue-dark);
+  color: #fff;
+  box-shadow: 0 1px 0 #ffffff80 inset, 0 8px 18px -10px var(--cn-blue-dark);
+}
+[data-skin="consola"] .btn.primary:hover,
+[data-skin="consola"] .btn.activo:hover { color: #fff; filter: brightness(1.06); }
+[data-skin="consola"] .btn.ghost {
+  background: #ffffffcc;
+  border-color: var(--cn-line);
+}
+
+[data-skin="consola"] .chip {
+  background: var(--cn-panel-2);
+  border-color: var(--cn-line);
+  color: var(--cn-ink-dim);
+  text-transform: none;
+  letter-spacing: 0;
+  font-family: var(--cn-font);
+}
+
+[data-skin="consola"] .kbd,
+[data-skin="consola"] .tecla-fis {
+  background: linear-gradient(180deg, #ffffff, #e9f0f5);
+  border: 1px solid var(--cn-line-fuerte);
+  border-bottom-width: 2px;
+  border-bottom-color: var(--cn-line-fuerte);
+  color: var(--cn-ink);
+  font-family: var(--cn-font);
+  font-weight: 700;
+}
+
+[data-skin="consola"] .switch { background: var(--cn-panel-3); border-color: var(--cn-line-fuerte); }
+[data-skin="consola"] .switch::after { background: #fff; box-shadow: 0 1px 3px #0003; }
+[data-skin="consola"] .switch.on { background: var(--cn-blue); border-color: var(--cn-blue-dark); }
+
+[data-skin="consola"] input[type="text"],
+[data-skin="consola"] select {
+  background: var(--cn-panel-2);
+  border-color: var(--cn-line-fuerte);
+  color: var(--cn-ink);
+  border-radius: 10px;
+}
+[data-skin="consola"] input[type="text"]:focus,
+[data-skin="consola"] select:focus { border-color: var(--cn-blue); }
+[data-skin="consola"] input[type="range"] { accent-color: var(--cn-blue); }
+
+[data-skin="consola"] .scroll::-webkit-scrollbar-thumb { background: var(--cn-line-fuerte); }
+
+/* ============================================================
+   3. Barra superior + reloj
+   ============================================================ */
+
+[data-skin="consola"] .hub-top {
+  position: sticky;
+  background: linear-gradient(180deg, #ffffff, #f4f9fc);
+  border-bottom: 1px solid var(--cn-line);
+  box-shadow: 0 6px 16px -12px #4d7a9199;
+  backdrop-filter: none;
+  min-height: 60px;
+  padding: 9px 18px;
+  gap: 14px;
+}
+
+[data-skin="consola"] .hub-word { font-family: var(--cn-font); font-size: 15px; font-weight: 800; }
+[data-skin="consola"] .hub-word b { color: var(--cn-ink); }
+[data-skin="consola"] .hub-word i { color: var(--cn-blue); font-weight: 700; }
+[data-skin="consola"] .hub-logo small { color: var(--cn-ink-faint); letter-spacing: 0.06em; }
+[data-skin="consola"] .hub-mark { border-radius: 8px; box-shadow: 0 2px 0 #c8d8e2; }
+[data-skin="consola"] .hub-mark::before,
+[data-skin="consola"] .hub-mark::after { background: #fff; }
+
+/* Reloj centrado, como el de la barra del menú HOME. Se posiciona absoluto
+   para que quede en el centro real de la ventana y no en el hueco que dejen
+   el logo y la rivalidad. */
+[data-skin="consola"] .cn-reloj {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  padding: 4px 20px;
+  border-radius: 999px;
+  color: var(--cn-ink);
+  pointer-events: none;
+  white-space: nowrap;
+}
+[data-skin="consola"] .cn-fecha {
+  font-size: 12.5px;
+  color: var(--cn-ink-faint);
+  letter-spacing: 0.02em;
+  text-transform: capitalize;
+}
+[data-skin="consola"] .cn-hora {
+  font-size: 26px;
+  font-weight: 300;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  line-height: 1;
+}
+[data-skin="consola"] .cn-hora small { font-size: 14px; opacity: 0.6; margin-left: 2px; }
+@media (max-width: 1080px) { [data-skin="consola"] .cn-reloj { display: none; } }
+
+/* Con las acciones abajo, la cabecera queda: marca a la izquierda, reloj en
+   el centro y la rivalidad a la derecha. */
+[data-skin="consola"] .rivalry {
+  margin-left: auto;
+  background: var(--cn-panel-2);
+  border: 1px solid var(--cn-line);
+  border-bottom-width: 2px;
+  box-shadow: 0 1px 0 #fff inset;
+}
+[data-skin="consola"] .rivalry:hover { border-color: var(--cn-blue); }
+[data-skin="consola"] .riv-num { font-family: var(--cn-font); font-weight: 800; font-size: 16px; }
+[data-skin="consola"] .riv-sep { color: var(--cn-ink-faint); font-weight: 700; }
+[data-skin="consola"] .riv-side img { box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--cn-line); }
+
+/* ============================================================
+   4. Escenario: la loseta grande
+   ============================================================ */
+
+[data-skin="consola"] .escenario {
+  height: clamp(300px, 40vh, 400px);
+  margin: 16px 18px 4px;
+  border: 1px solid var(--cn-line);
+  border-radius: 24px;
+  background: var(--cn-panel);
+  box-shadow: var(--cn-relieve-alto);
+}
+[data-skin="consola"] .esc-lienzo { border-radius: 23px; overflow: hidden; }
+
+/* Con sitio de sobra la escena deja de ser un fondo a sangre y se convierte en
+   una "tele" enmarcada a la derecha, con la ficha del juego en blanco a la
+   izquierda. Se puede insetar el lienzo sin deformar nada porque preview.js
+   mide el CONTENEDOR, no la ficha: la escena se redibuja a la proporción
+   nueva en vez de estirarse. */
+@media (min-width: 1000px) {
+  [data-skin="consola"] .escenario {
+    background: linear-gradient(120deg, color-mix(in srgb, var(--cc, var(--cn-blue)) 7%, #ffffff), #ffffff 62%);
+  }
+  [data-skin="consola"] .esc-lienzo {
+    inset: 18px 18px 18px 44%;
+    border-radius: 16px;
+    box-shadow: 0 0 0 1px var(--cn-line-fuerte), 0 18px 32px -20px #24506b;
+  }
+  [data-skin="consola"] .esc-velo { display: none; }
+  [data-skin="consola"] .esc-info { max-width: 40%; bottom: 26px; }
+
+  /* La chuleta de teclas se va a la esquina de la tele, como un aviso del
+     sistema flotando sobre la imagen. */
+  [data-skin="consola"] .esc-pista {
+    top: 30px; bottom: auto; right: 30px;
+    padding: 5px 12px;
+    border-radius: 999px;
+    background: #ffffffe0;
+    border: 1px solid var(--cn-line);
+    color: var(--cn-ink-dim);
+    box-shadow: 0 6px 14px -10px #24506b;
+  }
+}
+
+/* El velo se invierte: en vez de oscurecer para que el texto blanco se lea,
+   aclara para que se lea el texto oscuro. */
+/* Este velo era el peor enemigo de la legibilidad: un degradado que se
+   desvanecía justo donde acababan las frases, así que el final de cada línea
+   caía sobre la escena oscura y desaparecía. Ahora es blanco OPACO hasta el
+   58% y solo se difumina después, fuera de la caja de texto —que además se
+   limita al 52%— así que ninguna letra puede quedar sobre la imagen. */
+[data-skin="consola"] .esc-velo {
+  border-radius: 23px;
+  background:
+    linear-gradient(100deg, #ffffff 0%, #ffffff 58%, #ffffffcc 68%, #ffffff00 84%),
+    linear-gradient(0deg, #ffffff 0%, #ffffff88 8%, transparent 26%);
+}
+@media (max-width: 999px) {
+  [data-skin="consola"] .esc-info { max-width: min(520px, 52%); }
+}
+
+[data-skin="consola"] .esc-titulo {
+  font-family: var(--cn-font);
+  font-weight: 800;
+  font-size: clamp(24px, 3.4vw, 40px);
+  letter-spacing: -0.01em;
+  color: var(--cn-ink);
+  text-shadow: none;
+}
+[data-skin="consola"] .esc-desc { color: var(--cn-ink-dim); }
+[data-skin="consola"] .esc-num { color: var(--cn-ink-faint); font-family: var(--cn-font); font-weight: 700; }
+/* La categoría deja de ser un renglón en versalitas y pasa a ser una etiqueta
+   de color, que es como se marcan las secciones en el menú de una consola. */
+[data-skin="consola"] .esc-cat {
+  padding: 4px 12px 4px 9px;
+  border-radius: 999px;
+  letter-spacing: 0.08em;
+  background: color-mix(in srgb, var(--cc, var(--cn-blue)) 14%, #ffffff);
+  border: 1px solid color-mix(in srgb, var(--cc, var(--cn-blue)) 34%, #ffffff);
+  color: color-mix(in srgb, var(--cc, var(--cn-blue)) 72%, #10323f);
+}
+[data-skin="consola"] .esc-cat::before { box-shadow: none; }
+[data-skin="consola"] .esc-meta { gap: 8px; }
+[data-skin="consola"] .esc-controles .tecla-grupo {
+  background: var(--cn-panel-2);
+  border-color: var(--cn-line);
+  color: var(--cn-ink-dim);
+}
+[data-skin="consola"] .esc-pista { color: var(--cn-ink-faint); }
+[data-skin="consola"] .esc-historial { color: var(--cn-ink-faint); }
+[data-skin="consola"] .esc-historial b { font-family: var(--cn-font); font-weight: 800; }
+
+/* Botón JUGAR: pastilla con brillo superior y canto inferior, el gesto
+   "pulsable" de toda la interfaz de consola. Conserva el color de la
+   categoría para que cada sección siga teniendo identidad. */
+[data-skin="consola"] .btn.jugar {
+  font-family: var(--cn-font);
+  font-weight: 800;
+  font-size: 16px;
+  letter-spacing: 0.02em;
+  padding: 14px 34px;
+  color: #fff;
+  background: linear-gradient(180deg,
+    color-mix(in srgb, var(--cc, var(--cn-blue)) 72%, #ffffff),
+    var(--cc, var(--cn-blue)) 52%,
+    color-mix(in srgb, var(--cc, var(--cn-blue)) 78%, #003048));
+  border: 1px solid color-mix(in srgb, var(--cc, var(--cn-blue)) 70%, #002c42);
+  box-shadow: 0 1px 0 #ffffff9c inset, 0 10px 22px -12px #2b5a7099;
+  text-shadow: 0 1px 1px #00000030;
+}
+[data-skin="consola"] .btn.jugar:hover { transform: translateY(-2px); filter: brightness(1.07); }
+[data-skin="consola"] .btn.jugar:active { transform: translateY(1px); }
+[data-skin="consola"] .btn.jugar.pide-mando {
+  background: linear-gradient(180deg, #ffffff, #eef5f9);
+  color: #2f9f6d;
+  border: 2px dashed #57c79a;
+  text-shadow: none;
+  box-shadow: none;
+}
+
+/* ============================================================
+   5. Barra lateral de categorías
+   ============================================================ */
+
+/* Deja de ser una columna pegada al borde —herencia del tema oscuro, donde se
+   fundía con el fondo— y pasa a ser una tarjeta flotante: sobre un fondo claro
+   una franja a sangre parece un recorte, no un panel. */
+[data-skin="consola"] .hub-lateral {
+  top: 70px;
+  align-self: flex-start;
+  margin: 12px 0 0 12px;
+  padding: 10px 9px;
+  border: 1px solid var(--cn-line);
+  border-radius: 20px;
+  /* Blanco casi opaco en vez de `backdrop-filter`: sobre un fondo claro el
+     desenfoque no se aprecia y, siendo una capa fija encima del patrón
+     animado, obliga al compositor a rehacer el desenfoque en cada fotograma. */
+  background: #fffffff5;
+  box-shadow: var(--cn-relieve);
+}
+[data-skin="consola"] .lat-item { color: var(--cn-ink-dim); border-radius: 12px; font-weight: 600; }
+/* Cada icono en su pastilla de color, como los iconos de sistema del menú. */
+[data-skin="consola"] .lat-icono {
+  width: 30px; height: 30px;
+  border-radius: 9px;
+  background: color-mix(in srgb, var(--lc) 18%, #ffffff);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--lc) 30%, #ffffff), 0 0 0 1px color-mix(in srgb, var(--lc) 28%, #ffffff) inset;
+}
+[data-skin="consola"] .lat-item:hover { background: var(--cn-panel-2); color: var(--cn-ink); }
+[data-skin="consola"] .lat-item.on {
+  background: color-mix(in srgb, var(--lc) 15%, #ffffff);
+  border-color: color-mix(in srgb, var(--lc) 55%, #ffffff);
+  color: var(--cn-ink);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--lc) 30%, #ffffff);
+}
+/* La barrita de "estás aquí" sobresalía por fuera de la tarjeta; con el
+   elemento activo relleno de su color ya no hace falta. */
+[data-skin="consola"] .lat-item.on::before { display: none; }
+[data-skin="consola"] .lat-item.on .lat-icono {
+  background: var(--lc);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--lc) 62%, #0a2733);
+  color: #fff;
+}
+[data-skin="consola"] .lat-n { color: var(--cn-ink-faint); font-family: var(--cn-font); }
+[data-skin="consola"] .lat-sep { background: var(--cn-line); }
+[data-skin="consola"] .lat-punto { background: #3fc47f; box-shadow: 0 0 0 2px #fff; }
+
+/* ============================================================
+   6. Barra de progreso y buscador
+   ============================================================ */
+
+/* Progreso, filtro y buscador dejan de flotar sueltos sobre el fondo y se
+   agrupan en una sola barra blanca. De paso deja de hacer falta el degradado
+   que tapaba lo que pasaba por debajo al hacer scroll. */
+[data-skin="consola"] .hub-barra {
+  top: 70px;
+  margin: 12px 18px 2px;
+  padding: 9px 14px;
+  border: 1px solid var(--cn-line);
+  border-radius: 999px;
+  background: #fffffff5;              /* mismo motivo que en .hub-lateral */
+  box-shadow: var(--cn-relieve);
+}
+[data-skin="consola"] .prog-barra { background: #ffffff; border: 1px solid var(--cn-line); height: 8px; border-radius: 999px; }
+[data-skin="consola"] .prog-barra i { background: linear-gradient(90deg, #6fe3a8, var(--cn-blue)); }
+[data-skin="consola"] .prog-texto { color: var(--cn-ink-dim); }
+[data-skin="consola"] .prog-texto b { color: var(--cn-ink); font-family: var(--cn-font); font-weight: 800; }
+
+[data-skin="consola"] .filtro-nuevos,
+[data-skin="consola"] .buscador {
+  background: #ffffff;
+  border: 1px solid var(--cn-line-fuerte);
+  border-bottom-width: 2px;
+  color: var(--cn-ink-dim);
+  box-shadow: 0 1px 0 #fff inset;
+}
+[data-skin="consola"] .filtro-nuevos:hover { background: #fff; color: var(--cn-blue-dark); border-color: var(--cn-blue); }
+[data-skin="consola"] .filtro-nuevos.on {
+  background: linear-gradient(180deg, #7ce3ae, #3fc47f);
+  border-color: #2fa869;
+  color: #fff;
+}
+/* Dentro de la barra blanca, el buscador se hunde en vez de sobresalir: dos
+   superficies blancas con borde, una encima de otra, se ven como un error. */
+[data-skin="consola"] .hub-barra .buscador {
+  background: var(--cn-panel-2);
+  border-bottom-width: 1px;
+  box-shadow: inset 0 1px 2px #4d7a9122;
+}
+[data-skin="consola"] .buscador:focus-within { border-color: var(--cn-blue); color: var(--cn-blue-dark); }
+[data-skin="consola"] .buscador input { color: var(--cn-ink); }
+[data-skin="consola"] .buscador input::placeholder { color: var(--cn-ink-faint); }
+
+/* ============================================================
+   7. Rieles y losetas
+   ============================================================ */
+
+[data-skin="consola"] .riel-top h2 {
+  font-family: var(--cn-font);
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0;
+  color: var(--cn-ink);
+}
+[data-skin="consola"] .riel-top .riel-n {
+  font-family: var(--cn-font);
+  font-weight: 800;
+  font-size: 11px;
+  color: #fff;
+  background: var(--rc);
+  padding: 2px 9px;
+}
+[data-skin="consola"] .riel-top .riel-desc { color: var(--cn-ink-faint); }
+/* Mismo icono en pastilla que en la barra lateral: así una categoría se
+   reconoce igual la mires donde la mires. */
+[data-skin="consola"] .riel-top .riel-icono {
+  display: grid;
+  place-items: center;
+  width: 28px; height: 28px;
+  border-radius: 9px;
+  color: #fff;
+  background: var(--rc);
+  box-shadow: 0 2px 0 color-mix(in srgb, var(--rc) 62%, #0a2733);
+}
+[data-skin="consola"] .riel-nav button {
+  background: #fff;
+  border: 1px solid var(--cn-line-fuerte);
+  border-bottom-width: 2px;
+  color: var(--cn-ink-dim);
+  width: 30px; height: 30px;
+}
+[data-skin="consola"] .riel-nav button:hover { background: var(--rc); color: #fff; border-color: transparent; }
+
+[data-skin="consola"] .riel-pista { gap: 16px; padding: 8px 18px 22px; }
+[data-skin="consola"] .mural { gap: 16px; padding: 8px 18px 22px; grid-template-columns: repeat(auto-fill, minmax(172px, 1fr)); }
+
+/* La loseta: cuadrada, blanca, con la escena embutida arriba y el nombre en
+   una franja blanca abajo. La franja va superpuesta (no recorta el canvas)
+   para que el retrato siga midiendo la ficha entera y no se deforme. */
+[data-skin="consola"] .ficha {
+  width: 186px;
+  aspect-ratio: 1 / 1;
+  border-radius: 18px;
+  background: var(--cn-panel);
+  border: 1px solid var(--cn-line);
+  box-shadow: var(--cn-relieve);
+  transition: transform 260ms var(--cn-rebote), box-shadow 200ms ease;
+}
+[data-skin="consola"] .mural .ficha { width: auto; }
+[data-skin="consola"] .ficha .retrato { filter: saturate(1.05); }
+
+/* Paspartú: un marco blanco por dentro de la loseta. Sin él, una rejilla de
+   escenas oscuras sobre fondo claro parece una pared llena de agujeros; con él,
+   cada juego se lee como una carátula montada sobre una tarjeta.
+   Se hace con sombras INTERIORES y no recortando el lienzo a propósito:
+   preview.js mide la ficha entera, así que encogerlo por CSS deformaría la
+   escena. Aquí solo se tapa el borde, no se cambia de tamaño. */
+[data-skin="consola"] .ficha::after {
+  border: none;
+  border-radius: 18px;
+  box-shadow:
+    inset 0 0 0 6px #ffffff,
+    inset 0 0 0 7px #e3ecf2;
+}
+[data-skin="consola"] .ficha:hover,
+[data-skin="consola"] .ficha.enfocada { transform: translateY(-8px) scale(1.05); }
+[data-skin="consola"] .ficha:hover::after,
+[data-skin="consola"] .ficha.enfocada::after {
+  box-shadow:
+    inset 0 0 0 6px #ffffff,
+    inset 0 0 0 7px var(--cc),
+    0 0 0 3px var(--cc);
+}
+[data-skin="consola"] .ficha:hover,
+[data-skin="consola"] .ficha.enfocada { box-shadow: 0 3px 0 #b9cbd8, 0 26px 36px -20px #35637f; }
+[data-skin="consola"] .ficha:focus-visible { outline: 3px solid var(--cn-blue); outline-offset: 3px; }
+
+/* Los distintivos se meten dentro del paspartú: pegados al borde de la loseta
+   quedarían pisando el marco blanco. */
+[data-skin="consola"] .ficha-etiquetas { top: 12px; left: 12px; }
+/* El número va sobre la carátula, y las carátulas no son todas oscuras: las
+   de estética "papel" son crema. Con letra blanca y sombra desaparecía en
+   ésas, así que se le pone chapa propia y deja de depender del fondo. */
+[data-skin="consola"] .ficha-num {
+  top: 12px; right: 12px;
+  padding: 2px 7px;
+  border-radius: 999px;
+  background: #0f1f28a8;
+  font-family: var(--cn-font);
+  font-weight: 700;
+  font-size: 10px;
+  color: #ffffff;
+  text-shadow: none;
+}
+[data-skin="consola"] .ficha-etiquetas span {
+  border-radius: 999px;
+  padding: 3px 8px;
+  font-family: var(--cn-font);
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  background: #ffffffe6;
+  color: var(--cn-ink);
+  box-shadow: 0 1px 4px #0000001f;
+  backdrop-filter: none;
+}
+[data-skin="consola"] .ficha-etiquetas .et-nuevo {
+  background: linear-gradient(180deg, #7ce3ae, #3fc47f);
+  color: #fff;
+  box-shadow: 0 1px 4px #2fa86966;
+}
+[data-skin="consola"] .ficha-etiquetas .et-mando { background: linear-gradient(180deg, #35d3f5, var(--cn-blue)); color: #fff; }
+
+/* Franja del nombre: blanca y metida dentro del paspartú, para que quede a ras
+   del marco y no colgando del borde de la loseta. */
+[data-skin="consola"] .ficha-pie {
+  left: 6px; right: 6px; bottom: 6px;
+  padding: 8px 8px 6px;
+  background: linear-gradient(0deg, #ffffff 0 80%, #ffffffdd 92%, #ffffff00);
+  border-radius: 0 0 12px 12px;
+}
+[data-skin="consola"] .ficha-nombre {
+  font-family: var(--cn-font);
+  font-weight: 700;
+  font-size: 13.5px;
+  color: var(--cn-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+[data-skin="consola"] .ficha-dato { color: var(--cn-ink-faint); text-transform: none; letter-spacing: 0.02em; }
+[data-skin="consola"] .ficha-dato .barra { border-radius: 999px; }
+[data-skin="consola"] .ficha.probado .ficha-nombre { color: var(--cn-ink-dim); }
+[data-skin="consola"] .ficha.probado:hover .ficha-nombre,
+[data-skin="consola"] .ficha.probado.enfocada .ficha-nombre { color: var(--cn-ink); }
+[data-skin="consola"] .ficha.es-nuevo::after { border-color: transparent; }
+[data-skin="consola"] .vacio { color: var(--cn-ink-faint); }
+
+@media (max-width: 620px) {
+  [data-skin="consola"] .ficha { width: 148px; }
+  [data-skin="consola"] .mural { grid-template-columns: repeat(auto-fill, minmax(138px, 1fr)); }
+}
+
+/* ============================================================
+   8. Barra inferior: la pantalla del GamePad
+   ============================================================ */
+
+[data-skin="consola"] .cn-barra-mando {
+  position: fixed;
+  left: 0; right: 0; bottom: 0;
+  z-index: 40;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 9px 18px calc(9px + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, #ffffff, #eef4f8);
+  border-top: 1px solid var(--cn-line);
+  border-radius: 20px 20px 0 0;
+  box-shadow: 0 -10px 26px -18px #35637f;
+}
+
+/* Mini GamePad dibujado con CSS: carcasa + pantalla + dos palancas. */
+[data-skin="consola"] .cn-mando-icono {
+  position: relative;
+  flex: none;
+  width: 60px; height: 36px;
+  border-radius: 9px;
+  background: linear-gradient(180deg, #ffffff, #dfe9f0);
+  border: 1px solid var(--cn-line-fuerte);
+  box-shadow: 0 2px 0 #c8d8e2;
+  display: grid;
+  place-items: center;
+}
+[data-skin="consola"] .cn-mando-icono::before {
+  content: '';
+  width: 28px; height: 20px;
+  border-radius: 3px;
+  background: linear-gradient(160deg, #6fe0f7, var(--cn-blue));
+  box-shadow: 0 0 0 1px #ffffffaa;
+}
+[data-skin="consola"] .cn-mando-icono i,
+[data-skin="consola"] .cn-mando-icono b {
+  position: absolute;
+  top: 11px;
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: #fff;
+  border: 1px solid var(--cn-line-fuerte);
+}
+[data-skin="consola"] .cn-mando-icono i { left: 6px; }
+[data-skin="consola"] .cn-mando-icono b { right: 6px; }
+
+[data-skin="consola"] .cn-mando-texto { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+[data-skin="consola"] .cn-mando-sub {
+  font-size: 10px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--cn-ink-faint);
+  font-weight: 700;
+}
+[data-skin="consola"] .cn-mando-titulo {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--cn-ink);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 34vw;
+}
+
+[data-skin="consola"] .cn-barra-mando .hub-acciones { margin-left: auto; gap: 8px; }
+[data-skin="consola"] .cn-barra-mando .hub-acciones .btn { padding: 9px 15px; font-size: 13px; }
+[data-skin="consola"] .cn-barra-mando .hub-acciones .btn.icon-only { padding: 9px; }
+
+@media (max-width: 760px) {
+  [data-skin="consola"] .cn-mando-texto { display: none; }
+  [data-skin="consola"] .cn-barra-mando { gap: 10px; padding-inline: 10px; }
+}
+
+/* ============================================================
+   9. Modales
+   ============================================================ */
+
+[data-skin="consola"] .modal-fondo { background: #86a7bb66; backdrop-filter: blur(6px); }
+
+/* Aquí está el truco de las variables: el modal redefine la tinta y todos
+   sus hijos (labels, subtítulos, bordes de fila) se recolorean solos. */
+[data-skin="consola"] .modal {
+  --ink: var(--cn-ink);
+  --ink-dim: var(--cn-ink-dim);
+  --ink-faint: var(--cn-ink-faint);
+  --line: var(--cn-line);
+  background: linear-gradient(180deg, #ffffff, #f7fbfd);
+  border: 1px solid var(--cn-line-fuerte);
+  border-radius: 24px;
+  color: var(--cn-ink);
+  box-shadow: 0 30px 60px -28px #2f5f7a, 0 3px 0 #ffffff inset;
+}
+/* Aire. La rejilla del proyecto es de 4 px y los modales estaban montados con
+   el escalón de 8; subirlos un escalón entero es lo que separa "apretado" de
+   "respirado" sin tocar ni una tipografía. */
+[data-skin="consola"] .modal { padding: 28px 30px 26px; }
+[data-skin="consola"] .modal h2 {
+  font-family: var(--cn-font);
+  font-weight: 800;
+  font-size: 20px;
+  margin-bottom: 22px;
+}
+[data-skin="consola"] .modal h3 { color: var(--cn-ink-faint); letter-spacing: 0.1em; margin: 26px 0 14px; }
+[data-skin="consola"] .modal-cerrar { color: var(--cn-ink-dim); }
+[data-skin="consola"] .fila { border-bottom-color: var(--cn-line); padding: 13px 0; gap: 16px; }
+
+/* Todos los botones a la misma altura: en una fila mezclada (pastilla de
+   texto, botón de icono, interruptor) el ojo lee los desniveles antes que las
+   etiquetas. */
+[data-skin="consola"] .btn { min-height: 36px; }
+[data-skin="consola"] .btn.small { min-height: 32px; padding: 6px 14px; }
+[data-skin="consola"] .btn.icon-only { aspect-ratio: 1; }
+
+/* Superficies que en el tema oscuro eran un velo blanco translúcido: sobre
+   blanco desaparecerían, así que pasan a gris claro con borde. */
+[data-skin="consola"] .perfil,
+[data-skin="consola"] .cas-rasgo,
+[data-skin="consola"] .cas-op,
+[data-skin="consola"] .test-teclado,
+[data-skin="consola"] .torneo-item,
+[data-skin="consola"] .sala-mando,
+[data-skin="consola"] .tb-estado,
+[data-skin="consola"] .sala-codigo,
+[data-skin="consola"] .tecla-btn,
+[data-skin="consola"] .av-soltar,
+[data-skin="consola"] .cas-vista {
+  background: var(--cn-panel-2);
+  border-color: var(--cn-line);
+  color: var(--cn-ink);
+}
+/* ---- Creador de personajes ----
+   El editor es la pantalla más densa del proyecto: un visor, cinco grupos y
+   hasta doce opciones por rasgo. Aquí lo que hace falta es aire y que todo
+   caiga en la misma rejilla, no más adorno. */
+
+[data-skin="consola"] .cas { gap: 22px; }
+[data-skin="consola"] .cas-vista {
+  background: linear-gradient(180deg, #ffffff, #e8f2f8);
+  border-radius: 20px;
+  padding: 18px 16px;
+  box-shadow: var(--cn-relieve);
+}
+[data-skin="consola"] .cas-3d { width: 100%; height: 300px; }
+
+/* Pestañas de grupo como selector segmentado: mismo alto, mismo ancho, y el
+   activo relleno. Repartidas ocupan el panel entero. */
+[data-skin="consola"] .cas-pestanas { gap: 8px; }
+[data-skin="consola"] .cas-pestana { padding: 10px 6px; font-size: 13px; }
+
+[data-skin="consola"] .cas-rasgo {
+  background: var(--cn-panel-2);
+  border-color: var(--cn-line);
+  border-radius: 18px;
+  padding: 16px 18px;
+}
+[data-skin="consola"] .cas-etiqueta { letter-spacing: 0.09em; }
+
+/* Cada opción, su casilla blanca del mismo tamaño: la rejilla se lee como una
+   rejilla y no como una fila de recortes pegados. */
+[data-skin="consola"] .cas-op {
+  width: 100%;
+  display: grid;
+  place-items: center;
+  padding: 5px 0;
+  background: #ffffff;
+  border: 2px solid var(--cn-line);
+  border-radius: 14px;
+}
+[data-skin="consola"] .cas-op:hover { border-color: var(--cn-blue); transform: translateY(-2px); }
+[data-skin="consola"] .cas-op.on {
+  border-color: var(--cn-blue);
+  box-shadow: 0 0 0 3px var(--cn-blue-soft), 0 2px 0 #b9cbd8;
+}
+[data-skin="consola"] .cas-op-color {
+  width: 32px; height: 32px;
+  padding: 0;
+  border-radius: 50%;
+  border-width: 3px;
+  border-color: #ffffff;
+  box-shadow: 0 0 0 1px var(--cn-line-fuerte), 0 2px 0 #c8d8e2;
+}
+[data-skin="consola"] .cas-op-color.on {
+  border-color: #ffffff;
+  box-shadow: 0 0 0 3px var(--cn-blue), 0 2px 0 #b9cbd8;
+}
+
+[data-skin="consola"] .cas-giro { grid-template-columns: 38px 1fr 38px; gap: 10px; }
+[data-skin="consola"] .cas-flecha { width: 38px; height: 38px; border-radius: 12px; }
+[data-skin="consola"] .cas-poses .btn,
+[data-skin="consola"] .cas-extras .btn { padding: 10px 4px; }
+
+[data-skin="consola"] .cas-pie { border-top-color: var(--cn-line); }
+[data-skin="consola"] .cas-op:hover { border-color: var(--cn-blue); }
+[data-skin="consola"] .cas-op.on { border-color: var(--cn-blue); box-shadow: 0 0 0 3px var(--cn-blue-soft); }
+[data-skin="consola"] .cas-pestana,
+[data-skin="consola"] .av-estilo,
+[data-skin="consola"] .pausa-pestana {
+  background: #fff;
+  border: 1px solid var(--cn-line-fuerte);
+  border-bottom-width: 2px;
+  color: var(--cn-ink-dim);
+  font-weight: 600;
+}
+[data-skin="consola"] .cas-pestana.on,
+[data-skin="consola"] .av-estilo.on,
+[data-skin="consola"] .pausa-pestana.on {
+  background: linear-gradient(180deg, #35d3f5, var(--cn-blue));
+  border-color: var(--cn-blue-dark);
+  color: #fff;
+}
+[data-skin="consola"] .cas-flecha { background: #fff; border-color: var(--cn-line-fuerte); color: var(--cn-ink-dim); }
+[data-skin="consola"] .cas-flecha:hover { background: var(--cn-blue); color: #fff; }
+[data-skin="consola"] .cas-etiqueta { color: var(--cn-ink-faint); }
+[data-skin="consola"] .cas-etiqueta b { color: var(--cn-ink); }
+[data-skin="consola"] .color-op.on { border-color: var(--cn-ink); box-shadow: 0 0 0 3px #fff, 0 0 0 5px currentColor; }
+[data-skin="consola"] .emoji-op:hover { background: var(--cn-panel-3); }
+[data-skin="consola"] .emoji-op.on { background: var(--cn-blue-soft); box-shadow: inset 0 0 0 2px var(--cn-blue); }
+[data-skin="consola"] .av-vista canvas,
+[data-skin="consola"] .av-vista img { background: var(--cn-panel-3); }
+[data-skin="consola"] .av-soltar.activo { border-color: var(--cn-blue); background: var(--cn-blue-soft); }
+[data-skin="consola"] .tecla-btn.esperando { background: var(--cn-blue); color: #fff; }
+[data-skin="consola"] .torneo-item.actual { border-color: var(--cn-blue); box-shadow: 0 0 0 3px var(--cn-blue-soft); }
+/* Mismo caso que `.jug1.on`: hay que devolver el color del mando conectado. */
+[data-skin="consola"] .sala-mando.on { border-color: var(--mc); box-shadow: 0 0 0 3px color-mix(in srgb, var(--mc) 22%, #ffffff); }
+[data-skin="consola"] .sala-mando.on span { color: #2f9f6d; }
+[data-skin="consola"] .sala-codigo b { font-family: var(--cn-font); font-weight: 800; color: var(--cn-blue-dark); text-shadow: none; }
+[data-skin="consola"] .sala-url { background: #fff; border-color: var(--cn-line); }
+[data-skin="consola"] .sala-url code { color: var(--cn-blue-dark); font-weight: 600; }
+[data-skin="consola"] .test-num { font-family: var(--cn-font); font-weight: 800; color: var(--cn-ink); }
+[data-skin="consola"] .tb-estado.ok .punto { background: #3fc47f; box-shadow: none; }
+
+/* ============================================================
+   10. Dentro de la partida (play.html)
+   ------------------------------------------------------------
+   El lienzo del juego se queda oscuro a propósito: en una consola real la
+   partida es la partida y lo que se viste de blanco es el menú HOME.
+   ============================================================ */
+
+/* Mismo problema que el velo, pero peor: el marcador se desvanecía a
+   transparente y el cronómetro del centro, que va a media altura de la banda,
+   quedaba en tinta oscura sobre el lienzo negro del juego. Ahora es una banda
+   blanca opaca con el canto redondeado, como la barra de sistema de la consola:
+   ocupa lo mismo y siempre se lee. */
+[data-skin="consola"] .ui-scoreboard {
+  background: #ffffff;
+  color: var(--cn-ink);
+  border-radius: 0 0 18px 18px;
+  box-shadow: 0 6px 18px -10px #000000a6;
+  padding: 8px 18px 9px;
+}
+[data-skin="consola"] .sb-name { color: var(--cn-ink-dim); font-family: var(--cn-font); font-weight: 700; }
+[data-skin="consola"] .sb-score { font-family: var(--cn-font); font-weight: 800; font-size: 25px; text-shadow: none; }
+[data-skin="consola"] .sb-center { font-family: var(--cn-font); font-weight: 700; color: var(--cn-ink-dim); letter-spacing: 0.04em; }
+[data-skin="consola"] .sb-av { box-shadow: 0 0 0 2px #fff, 0 0 0 3px var(--cn-line-fuerte); }
+
+[data-skin="consola"] .ui-overlay,
+[data-skin="consola"] .ui-briefing { background: #86a7bb73; backdrop-filter: blur(8px); }
+
+[data-skin="consola"] .ui-card,
+[data-skin="consola"] .briefing-card {
+  --ink: var(--cn-ink);
+  --ink-dim: var(--cn-ink-dim);
+  --ink-faint: var(--cn-ink-faint);
+  --line: var(--cn-line);
+  background: linear-gradient(180deg, #ffffff, #f6fbfd);
+  border: 1px solid var(--cn-line-fuerte);
+  border-radius: 24px;
+  color: var(--cn-ink);
+  box-shadow: 0 30px 60px -26px #24506b, 0 3px 0 #ffffff inset;
+}
+[data-skin="consola"] .ui-card-title,
+[data-skin="consola"] .briefing-title { font-family: var(--cn-font); font-weight: 800; letter-spacing: 0; }
+[data-skin="consola"] .briefing-col,
+[data-skin="consola"] .pausa-col { background: var(--cn-panel-2); }
+[data-skin="consola"] .briefing-bar { background: var(--cn-panel-3); }
+[data-skin="consola"] .briefing-bar i { background: linear-gradient(90deg, #6fe3a8, var(--cn-blue)); }
+[data-skin="consola"] .pausa-fila { border-bottom-color: var(--cn-line); }
+[data-skin="consola"] .win-card { box-shadow: 0 0 0 4px color-mix(in srgb, var(--win) 30%, #ffffff), 0 30px 60px -26px #24506b; }
+[data-skin="consola"] .win-name { text-shadow: none; }
+[data-skin="consola"] .win-score { font-family: var(--cn-font); font-weight: 800; }
+
+[data-skin="consola"] .ui-toast,
+[data-skin="consola"] .ui-banner {
+  background: #ffffffee;
+  border: 1px solid var(--cn-line-fuerte);
+  color: var(--cn-ink);
+  font-family: var(--cn-font);
+  font-weight: 700;
+  box-shadow: 0 10px 24px -14px #24506b;
+}
+
+[data-skin="consola"] #game-topbar { opacity: 0.5; }
+[data-skin="consola"] #game-topbar:hover { opacity: 1; }
+/* OJO: la pantalla de carga vive sobre el escenario OSCURO, no sobre un panel
+   blanco. Aquí la tinta de la piel sería gris sobre negro; se deja clara. */
+[data-skin="consola"] #loading { color: #dbe7ef; }
+[data-skin="consola"] #loading p { color: #dbe7ef !important; }
+[data-skin="consola"] #loading .spin { border-color: #ffffff3d; border-top-color: var(--cn-blue); }
+
+/* Piezas de los juegos con tablero DOM: se aclaran para no quedar como una
+   mancha negra dentro de una interfaz blanca. */
+[data-skin="consola"] .turn-badge { background: #ffffffe6; color: var(--cn-ink); border-color: var(--cn-line-fuerte); }
+
+/* ============================================================
+   11. El mando táctil (mando.html)
+   ------------------------------------------------------------
+   Aquí la piel deja de ser una metáfora: el iPad ES el GamePad. Carcasa
+   blanca, botones con relieve gris claro y el azul del sistema para lo que
+   está activo. Lo único que sigue mandando el color del jugador es la tecla
+   pulsada, porque en mitad de una partida hay que ver de un vistazo cuál de
+   los dos ha apretado.
+   ============================================================ */
+
+[data-skin="consola"] body.mando {
+  background:
+    radial-gradient(700px 420px at 50% -10%, #ffffff, transparent 62%),
+    linear-gradient(180deg, var(--cn-bg-a), var(--cn-bg-b));
+  color: var(--cn-ink);
+  font-family: var(--cn-font);
+}
+
+[data-skin="consola"] .entrar-caja {
+  background: linear-gradient(180deg, #ffffff, #f5fafd);
+  border: 1px solid var(--cn-line-fuerte);
+  border-radius: 26px;
+  box-shadow: 0 26px 50px -30px #24506b, 0 3px 0 #ffffff inset;
+  color: var(--cn-ink);
+}
+[data-skin="consola"] .entrar-caja h1 { font-family: var(--cn-font); font-weight: 800; font-size: 19px; }
+[data-skin="consola"] .entrar-caja h1 i { color: var(--cn-blue); }
+[data-skin="consola"] .entrar-ayuda { color: var(--cn-ink-dim); }
+[data-skin="consola"] .hub-mark::before,
+[data-skin="consola"] .hub-mark::after { background: #fff; }
+
+[data-skin="consola"] .codigo-input {
+  background: #ffffff;
+  border: 2px solid var(--cn-line-fuerte);
+  border-radius: 16px;
+  color: var(--cn-ink);
+  font-family: var(--cn-font);
+  font-weight: 800;
+}
+[data-skin="consola"] .codigo-input:focus { border-color: var(--cn-blue); }
+[data-skin="consola"] .codigo-input::placeholder { color: var(--cn-line-fuerte); }
+
+[data-skin="consola"] .jug {
+  background: #ffffff;
+  border: 2px solid var(--cn-line-fuerte);
+  border-bottom-width: 3px;
+  border-radius: 16px;
+  color: var(--cn-ink-dim);
+}
+/* El fondo hay que repetirlo: `[data-skin] .jug` pesa lo mismo que `.jug1.on`
+   y, al cargarse consola.css después, ganaría el blanco y el botón elegido se
+   quedaría invisible. */
+[data-skin="consola"] .jug1.on { background: var(--p1); border-color: transparent; color: #10222c; }
+[data-skin="consola"] .jug2.on { background: var(--p2); border-color: transparent; color: #10222c; }
+
+[data-skin="consola"] .mando-top {
+  background: linear-gradient(180deg, #ffffff, #f1f7fa);
+  border-bottom: 1px solid var(--cn-line);
+}
+[data-skin="consola"] .mando-quien { font-family: var(--cn-font); font-weight: 800; font-size: 11px; color: #fff; }
+[data-skin="consola"] .mando-juego { color: var(--cn-ink-dim); font-weight: 600; }
+[data-skin="consola"] .mando-salir { background: #fff; border-color: var(--cn-line-fuerte); color: var(--cn-ink-dim); }
+[data-skin="consola"] .mando-pie { color: var(--cn-ink-faint); }
+[data-skin="consola"] .mando-aviso {
+  background: #fff6dd;
+  border-color: #f0d79a;
+  color: #9a7420;
+}
+
+/* La tecla: pastilla blanca con canto inferior. Se hunde de verdad al
+   pulsarla —el canto desaparece— para que el dedo note el clic aunque el
+   cristal no se mueva. */
+[data-skin="consola"] .tecla {
+  background: linear-gradient(180deg, #ffffff, #e8f0f5);
+  border: 1px solid var(--cn-line-fuerte);
+  border-bottom: 3px solid #c2d3df;
+  color: var(--cn-ink);
+  font-family: var(--cn-font);
+  font-weight: 700;
+  box-shadow: 0 1px 0 #ffffff inset;
+}
+[data-skin="consola"] .tecla small { color: var(--cn-ink-faint); }
+[data-skin="consola"] .tecla.on {
+  background: var(--yo, var(--cn-blue));
+  border-color: transparent;
+  border-bottom-width: 1px;
+  color: #fff;
+  transform: translateY(2px) scale(0.97);
+  box-shadow: none;
+}
+[data-skin="consola"] .tecla.on small { color: #ffffffcc; }
+
+[data-skin="consola"] .cruz .centro { background: var(--cn-panel-3); border-color: var(--cn-line); }
+
+[data-skin="consola"] .palanca {
+  background: radial-gradient(circle at 50% 32%, #ffffff, #dde9f1);
+  border: 2px solid var(--cn-line-fuerte);
+  box-shadow: 0 2px 0 #c8d8e2, inset 0 6px 14px -8px #4d7a91;
+}
+[data-skin="consola"] .palanca .punta {
+  box-shadow: 0 3px 0 #00000022, 0 0 0 3px #ffffffcc;
+}
+[data-skin="consola"] .palanca.activa { border-color: var(--yo, var(--cn-blue)); }
+
+[data-skin="consola"] .trazo-zona {
+  background: #ffffff;
+  border: 2px dashed var(--cn-line-fuerte);
+  border-radius: 20px;
+}
+[data-skin="consola"] .trazo-zona::before {
+  background-image:
+    linear-gradient(#e4eef4 1px, transparent 1px),
+    linear-gradient(90deg, #e4eef4 1px, transparent 1px);
+}
+[data-skin="consola"] .trazo-zona .pista { color: var(--cn-ink-faint); }
+
+[data-skin="consola"] .secreto {
+  background: linear-gradient(160deg, #ffffff, #eef5f9);
+  border: 1px solid var(--cn-line-fuerte);
+  border-radius: 20px;
+  color: var(--cn-ink);
+}
+[data-skin="consola"] .secreto .dato { font-family: var(--cn-font); font-weight: 800; }
+[data-skin="consola"] .mando-cuerpo.lienzo .secreto { background: #ffffffee; backdrop-filter: blur(6px); }
+
+[data-skin="consola"] .onda { background: #00b7e455; }
+
+[data-skin="consola"] .girar {
+  background: #ffffffee;
+  border: 1px solid var(--cn-line-fuerte);
+  color: var(--cn-ink-dim);
+  box-shadow: 0 10px 24px -14px #24506b;
+}
+[data-skin="consola"] .girar b { color: var(--cn-ink); }
+
+/* En horizontal la cabecera flota sobre el fondo claro. */
+@media (orientation: landscape) {
+  [data-skin="consola"] .mando-top { background: linear-gradient(180deg, #ffffffdd, transparent); }
+}
+
+/* ============================================================
+   12. Movimiento reducido
+   ============================================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  [data-skin="consola"] body.hub::before { animation: none; }
+}
+
+/* La estrella de favorito, en la piel clara. */
+[data-skin="consola"] .ficha-fav {
+  top: 12px; left: 12px;
+  background: #ffffffe0;
+  color: var(--cn-ink-faint);
+  box-shadow: 0 1px 4px #0000001f;
+}
+[data-skin="consola"] .ficha-fav.on {
+  background: #ffffff;
+  color: #f0a81e;
+  box-shadow: 0 1px 6px #f0a81e66;
+}
+[data-skin="consola"] .ficha:hover .ficha-etiquetas,
+[data-skin="consola"] .ficha.enfocada .ficha-etiquetas,
+[data-skin="consola"] .ficha:has(.ficha-fav.on) .ficha-etiquetas { transform: translateX(32px); }
+
+/* Logros en la piel clara. */
+[data-skin="consola"] .logro { background: var(--cn-panel-2); border-color: var(--cn-line); }
+[data-skin="consola"] .logro.on { border-color: #e8b84a; background: #fffaf0; }
+[data-skin="consola"] .logro-icono { background: #ffffff; color: var(--cn-ink-faint); box-shadow: 0 1px 0 var(--cn-line-fuerte); }
+[data-skin="consola"] .logro.on .logro-icono { background: #fdf1d8; color: #c8901e; }
+[data-skin="consola"] .logro.on .logro-prog { color: #b8801a; }
+[data-skin="consola"] .logro-prog i { background: #e8b84a; }
+[data-skin="consola"] .logro-aviso {
+  background: linear-gradient(180deg, #ffffff, #fdf7ea);
+  border-color: #e8b84a;
+  color: #b8801a;
+  box-shadow: 0 22px 46px -24px #24506b;
+}
+[data-skin="consola"] .logro-aviso b { color: var(--cn-ink); }

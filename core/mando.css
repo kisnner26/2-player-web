@@ -1,0 +1,498 @@
+/* ============================================================
+   mando.css — el mando táctil que se abre en el iPad o el móvil
+   Pensado para pulgares: zonas grandes, sin scroll y sin zoom.
+   ============================================================ */
+
+body.mando {
+  height: 100dvh;
+  overflow: hidden;
+  overscroll-behavior: none;
+  touch-action: none;                 /* nada de arrastrar la página al jugar */
+  -webkit-touch-callout: none;
+  background:
+    radial-gradient(700px 420px at 50% -10%, #ff2e8814, transparent 62%),
+    var(--bg-0);
+  /* Los botones nunca deben quedar bajo el notch ni bajo la barra de gestos. */
+  padding: env(safe-area-inset-top) env(safe-area-inset-right)
+           env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+.pantalla { height: 100%; display: flex; flex-direction: column; }
+.oculta { display: none !important; }
+
+/* ---------------- Emparejamiento ---------------- */
+
+.entrar-caja {
+  margin: auto;
+  width: min(420px, 88vw);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  text-align: center;
+  padding: 28px 22px 32px;
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+
+.hub-mark {
+  width: 40px; height: 40px;
+  border-radius: 11px;
+  background: linear-gradient(135deg, var(--p1), var(--p2));
+  position: relative;
+}
+.hub-mark::before, .hub-mark::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 12px; height: 12px;
+  border-radius: 50%;
+  background: #06060c;
+  transform: translate(-140%, -50%);
+}
+.hub-mark::after { transform: translate(40%, -50%); }
+
+.entrar-caja h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 15px;
+  line-height: 1.5;
+  letter-spacing: 0.02em;
+}
+.entrar-caja h1 i { color: var(--ink-faint); font-style: normal; margin-left: 6px; }
+.entrar-ayuda { margin: 0; font-size: 14px; color: var(--ink-dim); line-height: 1.5; }
+
+.codigo-input {
+  width: 100%;
+  padding: 16px 12px;
+  border-radius: var(--radius);
+  background: #ffffff0d;
+  border: 2px solid var(--line);
+  outline: none;
+  font-family: var(--font-display);
+  font-size: 30px;
+  text-align: center;
+  letter-spacing: 0.3em;
+  text-indent: 0.3em;                 /* compensa el espaciado del último carácter */
+  color: var(--ink);
+  text-transform: uppercase;
+}
+.codigo-input:focus { border-color: var(--p1); }
+.codigo-input::placeholder { color: var(--ink-faint); letter-spacing: 0.3em; }
+
+.elige-jugador { display: flex; gap: 10px; width: 100%; }
+.jug {
+  flex: 1;
+  padding: 13px 8px;
+  border-radius: var(--radius);
+  border: 2px solid var(--line);
+  background: transparent;
+  color: var(--ink-dim);
+  font-size: 14px;
+  font-weight: 600;
+}
+.jug1.on { background: var(--p1); border-color: transparent; color: #06060c; }
+.jug2.on { background: var(--p2); border-color: transparent; color: #06060c; }
+
+.btn.grande { width: 100%; padding: 16px; font-size: 16px; border-radius: var(--radius); }
+.entrar-error { margin: 0; font-size: 13px; color: var(--danger); min-height: 18px; }
+
+/* ---------------- Mando ---------------- */
+
+.mando-top {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--line);
+  flex: none;
+}
+.mando-quien {
+  font-family: var(--font-display);
+  font-size: 10px;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--yo, var(--p1));
+  color: #06060c;
+}
+.mando-juego {
+  font-size: 13px;
+  color: var(--ink-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.mando-salir {
+  margin-left: auto;
+  width: 34px; height: 34px;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  color: var(--ink-dim);
+  font-size: 15px;
+  flex: none;
+}
+
+.mando-aviso {
+  margin: 8px 16px 0;
+  padding: 9px 13px;
+  border-radius: var(--radius-sm);
+  background: #ffd16622;
+  border: 1px solid #ffd16655;
+  color: var(--gold);
+  font-size: 13px;
+  text-align: center;
+  flex: none;
+}
+
+.mando-cuerpo {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  gap: 14px;
+  padding: 14px;
+}
+
+.mando-pie {
+  flex: none;
+  margin: 0;
+  padding: 0 16px 12px;
+  text-align: center;
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  letter-spacing: 0.05em;
+}
+
+/* --- Disposición: cruceta a la izquierda, botones a la derecha --- */
+.mando-cuerpo.dual { grid-template-columns: 1fr 1fr; align-items: center; }
+.mando-cuerpo.solo { grid-template-columns: 1fr; }
+.mando-cuerpo.pila { grid-template-columns: 1fr; grid-auto-rows: 1fr; }
+
+/* --- Cruceta --- */
+.cruz {
+  position: relative;
+  aspect-ratio: 1;
+  width: min(100%, 46vh);
+  margin: auto;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  grid-template-rows: repeat(3, 1fr);
+  gap: 6px;
+}
+
+/* ============================================================
+   Horizontal — la postura real de juego
+   Con el iPad o el móvil tumbado, los pulgares llegan a las esquinas
+   de abajo y a nada más. Así que los controles se anclan a los bordes
+   exteriores, la cabecera se convierte en una banda flotante y el
+   centro queda libre: es donde descansan las manos.
+   ============================================================ */
+
+@media (orientation: landscape) {
+  .mando-top {
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    z-index: 5;
+    padding: 6px 14px;
+    border-bottom: none;
+    background: linear-gradient(180deg, #06060cd9, transparent);
+    pointer-events: none;                /* el centro no debe robar toques */
+  }
+  .mando-top .mando-salir { pointer-events: auto; }
+  .mando-quien { font-size: 9px; padding: 4px 8px; }
+  .mando-juego { font-size: 12px; }
+
+  .mando-pie { display: none; }
+
+  .mando-aviso {
+    position: absolute;
+    top: 40px; left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+    margin: 0;
+    white-space: nowrap;
+  }
+
+  #p-mando { position: relative; }
+
+  /* `.dual` y `.solo` llevan clase, así que ganan por especificidad a un
+     `.mando-cuerpo` a secas: hay que nombrarlas para poder recolocarlas. */
+  .mando-cuerpo,
+  .mando-cuerpo.dual,
+  .mando-cuerpo.solo,
+  .mando-cuerpo.pila {
+    padding: 8px clamp(10px, 2.5vw, 26px) clamp(8px, 2.5vh, 20px);
+    gap: clamp(10px, 3vw, 28px);
+    align-items: end;                    /* todo cae hacia los pulgares */
+  }
+
+  /* Cruceta y palanca: pegadas al borde izquierdo, tan grandes como el alto
+     permita. El límite por altura evita que en una tablet grande el control
+     crezca hasta quedar fuera del alcance del pulgar. */
+  .cruz, .palanca {
+    width: min(100%, 62vh, 260px);
+    margin: 0 auto 0 0;
+  }
+
+  .acciones {
+    height: auto;
+    align-self: end;
+    justify-self: end;
+    width: min(100%, 62vh, 300px);
+  }
+  .acciones.n1 { height: min(62vh, 190px); }
+  .acciones.n2, .acciones.n3 { height: min(70vh, 250px); }
+  .acciones.n4 { height: min(62vh, 260px); }
+
+  /* Un solo botón gigante (machaque, buzzer): que ocupe todo el ancho útil,
+     porque ahí se golpea con los dos pulgares a la vez. */
+  .mando-cuerpo.solo { grid-template-columns: 1fr; align-items: stretch; }
+  .mando-cuerpo.solo .acciones,
+  .mando-cuerpo.pila .acciones { width: 100%; height: 100%; justify-self: stretch; }
+  .mando-cuerpo.solo .tecla.enorme { min-height: 0; height: 100%; }
+  .mando-cuerpo.pila { grid-template-columns: 1fr; align-items: stretch; }
+
+  /* Trazo y secreto quieren el espacio central, que en horizontal sobra. */
+  .mando-cuerpo .trazo-zona,
+  .mando-cuerpo .secreto { align-self: stretch; height: 100%; }
+}
+
+/* Móvil tumbado: muy poco alto. Se recorta todo lo prescindible. */
+@media (orientation: landscape) and (max-height: 460px) {
+  .mando-top { padding: 4px 12px; }
+  .mando-juego { display: none; }
+  .cruz, .palanca { width: min(100%, 58vh, 200px); }
+  .acciones.n2, .acciones.n3 { height: min(74vh, 200px); }
+  .tecla { min-height: 44px; border-radius: 16px; font-size: 13px; }
+  .tecla .glifo { font-size: 21px; }
+  .mando-cuerpo { padding-top: 26px; }
+}
+
+/* Vertical en una tablet: los controles se van al fondo, no al centro,
+   porque en esa postura se sujeta por abajo. */
+@media (orientation: portrait) and (min-height: 700px) {
+  .mando-cuerpo { align-items: end; padding-bottom: clamp(16px, 6vh, 60px); }
+  .cruz, .palanca { width: min(100%, 34vh); }
+}
+.cruz .tecla { border-radius: 16px; }
+.cruz .up { grid-area: 1 / 2; }
+.cruz .left { grid-area: 2 / 1; }
+.cruz .right { grid-area: 2 / 3; }
+.cruz .down { grid-area: 3 / 2; }
+.cruz .centro {
+  grid-area: 2 / 2;
+  border-radius: 50%;
+  background: #ffffff08;
+  border: 1px solid var(--line);
+}
+
+/* --- Palanca analógica --- */
+.palanca {
+  position: relative;
+  aspect-ratio: 1;
+  width: min(100%, 46vh);
+  margin: auto;
+  border-radius: 50%;
+  background: #ffffff08;
+  border: 2px solid var(--line);
+  overflow: hidden;
+  touch-action: none;
+}
+.palanca .punta {
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 38%; height: 38%;
+  margin: -19% 0 0 -19%;
+  border-radius: 50%;
+  background: var(--yo, var(--p1));
+  box-shadow: 0 0 26px -4px var(--yo, var(--p1));
+  transition: transform 90ms linear;
+  pointer-events: none;
+}
+.palanca.activa { border-color: var(--yo, var(--p1)); }
+
+/* --- Botones de acción --- */
+.acciones {
+  display: grid;
+  gap: 12px;
+  align-content: center;
+  height: 100%;
+}
+.acciones.n1 { grid-template-rows: 1fr; }
+.acciones.n2 { grid-template-rows: 1fr 1fr; }
+.acciones.n3 { grid-template-rows: repeat(3, 1fr); }
+.acciones.n4 { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; }
+
+/* --- Tecla: la unidad táctil de todo el mando --- */
+.tecla {
+  position: relative;
+  display: grid;
+  place-items: center;
+  gap: 2px;
+  border-radius: 20px;
+  background: linear-gradient(180deg, #ffffff14, #ffffff08);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 15px;
+  font-weight: 650;
+  letter-spacing: 0.02em;
+  user-select: none;
+  -webkit-user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 70ms var(--ease), background 70ms, box-shadow 70ms;
+  min-height: 54px;
+  padding: 6px;
+  text-align: center;
+  line-height: 1.2;
+}
+.tecla small { font-size: 10px; color: var(--ink-faint); font-weight: 500; letter-spacing: 0.06em; }
+.tecla .glifo { font-size: 26px; line-height: 1; }
+
+/* Presionado: se marca con el color del jugador, no con un gris. */
+.tecla.on {
+  background: var(--yo, var(--p1));
+  border-color: transparent;
+  color: #06060c;
+  transform: scale(0.95);
+  box-shadow: 0 0 30px -6px var(--yo, var(--p1));
+}
+.tecla.on small { color: #06060c99; }
+
+/* Botón grande de un solo gesto (Espacio / M): ocupa todo lo que pueda. */
+.tecla.enorme { min-height: 40vh; font-size: 20px; border-radius: 26px; }
+
+/* --- Zona de trazo, para los juegos de dibujo ---
+   Dibujar con el dedo necesita SITIO. Cuando el perfil solo trae un lienzo,
+   este se come la pantalla entera del aparato: la cabecera se superpone y
+   desaparecen los márgenes, porque un recuadro pequeño convierte cualquier
+   garabato en un churro. */
+.trazo-zona {
+  position: relative;
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #ffffff0e, transparent 70%),
+    #ffffff07;
+  border: 1px dashed var(--line);
+  touch-action: none;
+  overflow: hidden;
+  min-height: 0;
+}
+.trazo-zona canvas { display: block; width: 100%; height: 100%; }
+.trazo-zona .pista {
+  position: absolute;
+  inset: auto 0 10px;
+  text-align: center;
+  font-size: 11px;
+  color: var(--ink-faint);
+  pointer-events: none;
+  transition: opacity 200ms;
+}
+/* Retícula tenue: da referencia de proporción al dibujar a ciegas. */
+.trazo-zona::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(#ffffff0a 1px, transparent 1px),
+    linear-gradient(90deg, #ffffff0a 1px, transparent 1px);
+  background-size: 12.5% 12.5%;
+}
+
+/* Disposición «lienzo»: el dibujo manda y todo lo demás se aparta. */
+.mando-cuerpo.lienzo {
+  grid-template-columns: 1fr;
+  padding: 4px;
+  gap: 6px;
+}
+.mando-cuerpo.lienzo .trazo-zona { height: 100%; border-radius: 14px; }
+.mando-cuerpo.lienzo .secreto {
+  position: absolute;
+  top: 46px; left: 14px; right: 14px;
+  z-index: 4;
+  padding: 8px 12px;
+  background: #0a0a14e0;
+  backdrop-filter: blur(6px);
+  pointer-events: none;
+}
+.mando-cuerpo.lienzo .secreto p { font-size: 14px; }
+.mando-cuerpo.lienzo .secreto .dato { font-size: 17px; }
+body.mando:has(.mando-cuerpo.lienzo) .mando-top {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  z-index: 5;
+  background: linear-gradient(180deg, #06060cdd, transparent);
+  border-bottom: none;
+  pointer-events: none;
+}
+body.mando:has(.mando-cuerpo.lienzo) .mando-top .mando-salir { pointer-events: auto; }
+body.mando:has(.mando-cuerpo.lienzo) .mando-pie { display: none; }
+body.mando:has(.mando-cuerpo.lienzo) #p-mando { position: relative; }
+
+/* --- Onda bajo el dedo --- */
+.onda {
+  position: absolute;
+  width: 12px; height: 12px;
+  margin: -6px 0 0 -6px;
+  border-radius: 50%;
+  background: #ffffff66;
+  pointer-events: none;
+  animation: onda-sale 420ms var(--ease) forwards;
+}
+@keyframes onda-sale {
+  from { transform: scale(0.4); opacity: 0.75; }
+  to { transform: scale(9); opacity: 0; }
+}
+
+/* --- Secreto: información que solo ve este jugador --- */
+.secreto {
+  padding: 16px 18px;
+  border-radius: var(--radius);
+  background: linear-gradient(160deg, #ffffff10, #ffffff05);
+  border: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+}
+.secreto h3 {
+  margin: 0;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--yo, var(--p1));
+}
+.secreto p { margin: 0; font-size: 17px; line-height: 1.45; }
+.secreto .dato {
+  font-family: var(--font-display);
+  font-size: 22px;
+  letter-spacing: 0.06em;
+}
+
+/* --- Estado de la conexión --- */
+.mando-top.caido .mando-quien { background: var(--ink-faint); }
+.mando-cuerpo.caido { opacity: 0.4; pointer-events: none; }
+
+/* Aviso de girar el aparato: en vertical y con poco alto, este mando se
+   maneja fatal. Se sugiere una vez, sin bloquear nada. */
+.girar {
+  position: fixed;
+  left: 50%;
+  bottom: calc(14px + env(safe-area-inset-bottom));
+  transform: translateX(-50%);
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 15px;
+  border-radius: 999px;
+  background: #14142aee;
+  border: 1px solid var(--line);
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  white-space: nowrap;
+  animation: slide-up 300ms var(--ease);
+}
+.girar b { color: var(--ink); font-weight: 600; }
+@media (orientation: landscape) { .girar { display: none; } }

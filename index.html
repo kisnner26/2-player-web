@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>2 Player Arcade — Juegos para dos en un mismo teclado</title>
+  <meta name="description" content="Ochenta minijuegos locales para dos jugadores en una misma Mac, con una categoría entera pensada para parejas. Sin internet, sin cuentas, sin instalar nada.">
+  <link rel="stylesheet" href="core/theme.css">
+  <link rel="stylesheet" href="core/hub.css">
+  <link rel="stylesheet" href="core/consola.css">
+  <link rel="stylesheet" href="assets/fonts/fonts.css">
+  <!-- La piel se decide aquí y no en core/consola.js: un módulo carga después de
+       pintar y se vería un fogonazo del tema oscuro antes de volverse blanco. -->
+  <script>
+    try {
+      const s = JSON.parse(localStorage.getItem('2pa:settings') || '{}').skin;
+      // 'wiiu' es el nombre viejo de esta piel: se acepta para no dejar sin
+      // aspecto a quien la tuviera ya guardada.
+      document.documentElement.dataset.skin = (!s || s === 'wiiu') ? 'consola' : s;
+    } catch { document.documentElement.dataset.skin = 'consola'; }
+  </script>
+</head>
+<body class="hub" data-theme="arcade">
+
+  <div id="hub">
+    <header class="hub-top">
+      <div class="hub-logo">
+        <span class="hub-mark" aria-hidden="true"></span>
+        <span class="hub-word"><b>2 PLAYER</b><i>ARCADE</i></span>
+        <small id="conteo">cargando…</small>
+      </div>
+
+      <button class="rivalry" id="rivalry" title="Ver la rivalidad histórica">
+        <span class="riv-side riv-p1">
+          <img id="riv-av1" alt="">
+          <span class="riv-num" id="riv-n1">0</span>
+        </span>
+        <span class="riv-sep">VS</span>
+        <span class="riv-side riv-p2">
+          <span class="riv-num" id="riv-n2">0</span>
+          <img id="riv-av2" alt="">
+        </span>
+      </button>
+
+      <div class="hub-acciones">
+        <button class="btn small" id="btn-sala" data-icon="phone" data-label="Mandos"></button>
+        <button class="btn small" id="btn-torneo" data-icon="trophy" data-label="Torneo"></button>
+        <button class="btn small" id="btn-azar" data-icon="dice" data-label="Al azar"></button>
+        <button class="btn small" id="btn-crear" data-icon="palette" data-label="Crear"></button>
+        <button class="btn small" id="btn-logros" data-icon="medalla" data-label="Logros"></button>
+        <button class="btn small" id="btn-perfiles" data-icon="users" data-label="Jugadores"></button>
+        <button class="btn small" id="btn-ajustes" data-icon="gear" data-label="Ajustes"></button>
+        <button class="btn small ghost icon-only" id="btn-pantalla" data-icon="expand" title="Pantalla completa"></button>
+      </div>
+    </header>
+
+    <!-- Escenario: el juego enfocado, a sangre y en movimiento. -->
+    <section class="escenario" id="escenario" aria-live="polite">
+      <div class="esc-lienzo" id="esc-lienzo"></div>
+      <div class="esc-velo" aria-hidden="true"></div>
+      <div class="esc-info">
+        <p class="esc-meta">
+          <span class="esc-cat" id="esc-cat"></span>
+          <span class="esc-num" id="esc-num"></span>
+        </p>
+        <h1 class="esc-titulo" id="esc-titulo">—</h1>
+        <p class="esc-desc" id="esc-desc"></p>
+        <div class="esc-controles" id="esc-controles"></div>
+        <div class="esc-acciones">
+          <button class="btn jugar" id="esc-jugar"></button>
+          <div class="esc-historial" id="esc-historial"></div>
+        </div>
+      </div>
+      <p class="esc-pista" aria-hidden="true">
+        <span class="kbd">←</span><span class="kbd">→</span> elegir
+        <span class="kbd">↑</span><span class="kbd">↓</span> categoría
+        <span class="kbd">↵</span> jugar
+      </p>
+    </section>
+
+    <div class="hub-cuerpo">
+      <!-- Barra lateral estilo consola: solo iconos, se despliega al pasar. -->
+      <nav class="hub-lateral" id="lateral" aria-label="Categorías"></nav>
+
+      <div class="hub-contenido">
+        <div class="hub-barra">
+          <div class="hub-progreso" id="progreso"></div>
+          <button class="filtro-nuevos" id="btn-nuevos"></button>
+          <div class="buscador">
+            <input type="text" id="buscar" placeholder="Buscar juego…" aria-label="Buscar juego">
+          </div>
+        </div>
+        <main class="hub-lista" id="lista"></main>
+      </div>
+    </div>
+  </div>
+
+  <div id="modales"></div>
+
+  <script type="module" src="core/hub.js"></script>
+</body>
+</html>
