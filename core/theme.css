@@ -1,0 +1,166 @@
+/* ============================================================
+   Sistema de diseño — 2 Player Arcade
+   Estética mixta: neón por código (arcade/reflejos),
+   pixel (versus), papel-tinta (tablero), suave (co-op).
+   ============================================================ */
+
+:root {
+  /* Paleta base */
+  --bg-0: #06060c;
+  --bg-1: #0d0d18;
+  --bg-2: #14142a;
+  --bg-3: #1e1e3a;
+  --line: #2a2a4d;
+
+  --ink: #f2f2ff;
+  --ink-dim: #a0a0c8;
+  --ink-faint: #63638c;
+
+  /* Colores de jugador (sobrescritos por los perfiles) */
+  --p1: #ff2e88;
+  --p1-glow: #ff2e8855;
+  --p2: #00e5ff;
+  --p2-glow: #00e5ff55;
+
+  /* Acentos */
+  --gold: #ffd166;
+  --lime: #a8ff3e;
+  --violet: #b04cff;
+  --danger: #ff4757;
+
+  /* Tipografía */
+  --font-display: "Press Start 2P", "Courier New", monospace;
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", sans-serif;
+  --font-mono: "SF Mono", ui-monospace, Menlo, monospace;
+
+  /* Espaciado */
+  --sp-1: 4px;
+  --sp-2: 8px;
+  --sp-3: 12px;
+  --sp-4: 16px;
+  --sp-5: 24px;
+  --sp-6: 32px;
+  --sp-7: 48px;
+
+  --radius: 12px;
+  --radius-sm: 8px;
+  --radius-lg: 20px;
+
+  --shadow: 0 8px 32px #0009;
+  --dur-fast: 120ms;
+  --dur: 220ms;
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Temas por categoría — el shell pone data-theme en <body> */
+body[data-theme="arcade"]  { --bg-0: #06060c; --bg-1: #0d0d18; }
+body[data-theme="versus"]  { --bg-0: #0a0810; --bg-1: #17111f; }
+body[data-theme="reflejos"]{ --bg-0: #04080c; --bg-1: #0a1520; }
+body[data-theme="tablero"] { --bg-0: #16130f; --bg-1: #211c16; --ink: #f5ecd9; --ink-dim: #b9a98c; --line: #3c3327; }
+body[data-theme="coop"]    { --bg-0: #060c0a; --bg-1: #0d1a16; }
+body[data-theme="touchbar"]{ --bg-0: #000000; --bg-1: #0a0a0a; --line: #262626; }
+/* Realismo: los juegos 3D traen su propio cielo, así que el marco se aparta
+   con un gris cálido de estudio en vez de competir con la escena. */
+body[data-theme="realismo"]{ --bg-0: #0b0c10; --bg-1: #1b1a1e; --line: #33323a; }
+
+/* ---------- Reset ---------- */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  background: var(--bg-0);
+  color: var(--ink);
+  font-family: var(--font-ui);
+  -webkit-font-smoothing: antialiased;
+  overflow: hidden;
+  user-select: none;
+  -webkit-user-select: none;
+}
+button, input, select { font-family: inherit; color: inherit; }
+button { cursor: pointer; border: none; background: none; }
+
+/* ---------- Primitivas ---------- */
+.panel {
+  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-2);
+  padding: 10px 18px;
+  border-radius: var(--radius-sm);
+  background: var(--bg-3);
+  border: 1px solid var(--line);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  transition: transform var(--dur-fast) var(--ease),
+              background var(--dur-fast),
+              border-color var(--dur-fast);
+}
+.btn:hover { background: #2b2b52; border-color: #3d3d6b; transform: translateY(-1px); }
+.btn:active { transform: translateY(1px) scale(0.98); }
+.btn.primary {
+  background: linear-gradient(135deg, var(--p1), var(--violet));
+  border-color: transparent;
+  color: #fff;
+  box-shadow: 0 4px 20px var(--p1-glow);
+}
+.btn.ghost { background: transparent; }
+.btn.small { padding: 6px 12px; font-size: 12px; }
+
+/* Iconos de línea (core/icons.js) — base compartida por hub y juegos. */
+.icon { display: inline-block; vertical-align: -3px; flex: none; }
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #ffffff0f;
+  border: 1px solid var(--line);
+  font-size: 11px;
+  color: var(--ink-dim);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.kbd {
+  display: inline-block;
+  min-width: 22px;
+  padding: 3px 7px;
+  border-radius: 6px;
+  background: #ffffff14;
+  border: 1px solid #ffffff26;
+  border-bottom-width: 2px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  text-align: center;
+  color: var(--ink);
+}
+
+.title-glow {
+  font-family: var(--font-display);
+  text-shadow: 0 0 12px currentColor, 0 0 32px currentColor;
+}
+
+/* Scroll discreto */
+.scroll { overflow-y: auto; scrollbar-width: thin; scrollbar-color: var(--line) transparent; }
+.scroll::-webkit-scrollbar { width: 8px; }
+.scroll::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+
+/* ---------- Animaciones compartidas ---------- */
+@keyframes pop { 0% { transform: scale(0.7); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+@keyframes pulse-glow { 0%,100% { opacity: 0.55; } 50% { opacity: 1; } }
+@keyframes slide-up { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+}

@@ -1,0 +1,571 @@
+/* ============================================================
+   game.css — marco común de todos los juegos (play.html)
+   ============================================================ */
+
+#stage {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: radial-gradient(ellipse at 50% 0%, var(--bg-1), var(--bg-0) 70%);
+}
+
+#stage canvas {
+  display: block;
+  border-radius: var(--radius);
+  background: var(--bg-0);
+}
+
+/* IMPORTANTE: las reglas de este archivo usan selectores con id (#load-error,
+   #dom-root, #stage canvas), que pesan más que el `[hidden] { display: none }`
+   del navegador. Sin esta regla, un elemento con el atributo `hidden` se
+   queda invisible pero PRESENTE, y si además tiene z-index se traga todos los
+   clics de la pantalla. Eso es lo que impedía volver al menú: el overlay de
+   error, oculto y a pantalla completa, tapaba los botones.
+
+   Se aplica a todo el marco para que ningún elemento futuro repita el fallo. */
+#frame [hidden],
+#stage [hidden] { display: none !important; }
+
+/* Marco que contiene el canvas y todas las capas de UI */
+#frame {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+/* Raíz para los juegos que usan DOM en vez de canvas */
+#dom-root {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 64px 24px 24px;
+}
+
+/* Destello del sistema háptico */
+#flash {
+  position: absolute;
+  inset: 0;
+  background: #fff;
+  opacity: 0;
+  pointer-events: none;
+  mix-blend-mode: overlay;
+  z-index: 40;
+}
+
+/* Efecto CRT sutil (desactivable en ajustes) */
+#scanlines {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 35;
+  background: repeating-linear-gradient(
+    to bottom, #0000 0px, #0000 2px, #00000022 3px, #00000022 4px);
+  opacity: 0.55;
+}
+body[data-crt="off"] #scanlines { display: none; }
+
+.ui-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 50;
+  pointer-events: none;
+}
+.ui-layer > * { pointer-events: auto; }
+
+/* ---------------- Marcador ---------------- */
+
+.ui-scoreboard {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-4);
+  padding: 10px 16px;
+  background: linear-gradient(180deg, #000000aa, #0000);
+  pointer-events: none;
+}
+.sb-side { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.sb-av {
+  width: 38px; height: 38px;
+  border-radius: 50%;
+  flex: none;
+  image-rendering: pixelated;
+}
+.sb-meta { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; }
+.sb-meta.right { align-items: flex-end; }
+.sb-name {
+  font-size: 11px;
+  color: var(--ink-dim);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 130px;
+}
+.sb-score {
+  font-family: var(--font-display);
+  font-size: 22px;
+  display: inline-block;
+}
+.sb-p1 .sb-score { color: var(--p1); text-shadow: 0 0 14px var(--p1-glow); }
+.sb-p2 .sb-score { color: var(--p2); text-shadow: 0 0 14px var(--p2-glow); }
+.sb-center {
+  font-family: var(--font-mono);
+  font-size: 15px;
+  color: var(--ink-dim);
+  letter-spacing: 0.1em;
+  text-align: center;
+  flex: 1;
+}
+@keyframes score-bump {
+  0% { transform: scale(1); }
+  40% { transform: scale(1.45); }
+  100% { transform: scale(1); }
+}
+
+/* ---------------- Cuenta atrás ---------------- */
+
+.ui-countdown {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-display);
+  font-size: clamp(48px, 12vw, 128px);
+  color: var(--ink);
+  text-shadow: 0 0 30px var(--p1), 0 0 70px var(--p2);
+  pointer-events: none;
+}
+.ui-countdown.go { color: var(--lime); text-shadow: 0 0 40px var(--lime); }
+@keyframes cd-pop {
+  0%   { transform: scale(2.2); opacity: 0; }
+  25%  { transform: scale(1);   opacity: 1; }
+  100% { transform: scale(0.85); opacity: 0.15; }
+}
+@keyframes cd-go {
+  0%   { transform: scale(0.6); opacity: 0; }
+  30%  { transform: scale(1.15); opacity: 1; }
+  100% { transform: scale(1.6); opacity: 0; }
+}
+
+/* ---------------- Avisos ---------------- */
+
+.ui-toast {
+  position: absolute;
+  left: 50%;
+  top: 22%;
+  transform: translateX(-50%);
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: #000000cc;
+  border: 1px solid var(--line);
+  font-family: var(--font-display);
+  font-size: 13px;
+  white-space: nowrap;
+  opacity: 0;
+  transition: opacity 260ms;
+  pointer-events: none;
+}
+@keyframes toast-in { from { transform: translate(-50%, -10px); opacity: 0; } to { transform: translate(-50%, 0); opacity: 1; } }
+
+.ui-banner {
+  position: absolute;
+  left: 50%;
+  top: 62px;
+  transform: translateX(-50%);
+  padding: 8px 18px;
+  border-radius: var(--radius-sm);
+  background: #000000b0;
+  border: 1px solid var(--line);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
+  pointer-events: none;
+  animation: slide-up 220ms var(--ease);
+}
+
+/* ---------------- Explicación de controles (previa a cada partida) ---------------- */
+
+.ui-briefing { z-index: 65; background: #05050bf2; }
+.briefing-card {
+  width: min(660px, 94vw);
+  padding: var(--sp-5) var(--sp-5) var(--sp-4);
+  text-align: center;
+  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+  animation: pop 220ms var(--ease);
+}
+.briefing-tag {
+  display: inline-block;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  margin-bottom: 8px;
+}
+.briefing-title {
+  font-family: var(--font-display);
+  font-size: 21px;
+  line-height: 1.5;
+  margin: 0 0 8px;
+}
+.briefing-desc {
+  font-size: 13.5px;
+  color: var(--ink-dim);
+  margin: 0 auto var(--sp-5);
+  line-height: 1.55;
+  max-width: 46ch;
+}
+
+.briefing-cols {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  margin-bottom: var(--sp-4);
+  text-align: left;
+}
+.briefing-col {
+  padding: 14px;
+  border-radius: var(--radius);
+  background: #ffffff06;
+  border: 1px solid color-mix(in srgb, var(--c) 40%, var(--line) 60%);
+}
+/* Quién es quién: avatar y nombre en una línea, no apilados y centrados.
+   Así la tarjeta empieza a leerse por la izquierda como cualquier lista. */
+.briefing-quien {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #ffffff12;
+}
+.briefing-quien img {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  image-rendering: pixelated;
+  flex: none;
+}
+.briefing-quien h3 {
+  font-size: 13.5px;
+  color: var(--c);
+  margin: 0;
+  font-weight: 650;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------------- Controles: tecla a la izquierda, acción a la derecha ---------------- */
+
+.ctrl-lista { display: flex; flex-direction: column; gap: 7px; }
+.ctrl-fila {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 10px;
+}
+.ctrl-teclas { display: inline-flex; align-items: center; gap: 3px; flex: none; }
+.ctrl-union { font-style: normal; font-size: 10px; color: var(--ink-faint); margin: 0 1px; }
+.ctrl-accion { font-size: 13px; color: var(--ink); line-height: 1.35; }
+
+/* Tecla con relieve: se reconoce como algo que se pulsa, no como texto. */
+.tecla-fis {
+  display: inline-grid;
+  place-items: center;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 7px;
+  background: linear-gradient(180deg, #ffffff1f, #ffffff0d);
+  border: 1px solid #ffffff33;
+  border-bottom-width: 3px;
+  border-bottom-color: #ffffff1a;
+  font-family: var(--font-mono);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: var(--ink);
+  line-height: 1;
+}
+
+/* Lo que no es una tecla —una regla, una advertencia— va como nota. */
+.ctrl-nota {
+  font-size: 12px;
+  color: var(--ink-dim);
+  line-height: 1.45;
+  padding-left: 10px;
+  border-left: 2px solid color-mix(in srgb, var(--c, var(--ink-faint)) 50%, transparent);
+}
+
+.briefing-foot {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  margin: 0;
+}
+.briefing-omitir { color: var(--ink-faint); font-size: 11.5px; }
+
+.briefing-bar { width: 100%; height: 3px; border-radius: 2px; background: #ffffff14; overflow: hidden; margin-bottom: 12px; }
+.briefing-bar i {
+  display: block; height: 100%; width: 100%;
+  background: linear-gradient(90deg, var(--p1), var(--p2));
+  transform-origin: left;
+  animation: briefing-progreso linear forwards;
+  animation-duration: var(--briefing-ms, 7000ms);
+}
+@keyframes briefing-progreso { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+@media (max-width: 560px) { .briefing-cols { grid-template-columns: 1fr; } }
+
+/* ---------------- Cortinilla de entrada ---------------- */
+
+.intro {
+  position: absolute;
+  inset: 0;
+  z-index: 90;
+  background: #06060c;
+  overflow: hidden;
+  transition: opacity 240ms var(--ease);
+}
+.intro.fuera { opacity: 0; }
+.intro canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+.intro-texto {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  text-align: center;
+  padding: 0 24px;
+}
+.intro-cat {
+  font-size: 10.5px;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+  color: var(--cc);
+  opacity: 0;
+  animation: intro-cat 520ms 180ms var(--ease) forwards;
+}
+.intro-titulo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(22px, 5vw, 46px);
+  line-height: 1.25;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 40px var(--cc), 0 6px 34px #000;
+  opacity: 0;
+  animation: intro-titulo 620ms 320ms var(--ease) forwards;
+}
+/* Línea que se abre bajo el título: remata el gesto de "cortina". */
+.intro-linea {
+  width: 0;
+  height: 2px;
+  background: var(--cc);
+  box-shadow: 0 0 18px var(--cc);
+  animation: intro-linea 900ms 560ms var(--ease) forwards;
+}
+
+@keyframes intro-cat {
+  from { opacity: 0; transform: translateY(10px); letter-spacing: 0.6em; }
+  to { opacity: 1; transform: none; letter-spacing: 0.32em; }
+}
+@keyframes intro-titulo {
+  from { opacity: 0; transform: translateY(22px) scale(0.96); filter: blur(6px); }
+  to { opacity: 1; transform: none; filter: none; }
+}
+@keyframes intro-linea {
+  from { width: 0; }
+  to { width: min(280px, 46vw); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro-cat, .intro-titulo, .intro-linea { animation-duration: 1ms; }
+}
+
+/* ---------------- Overlays (pausa / fin) ---------------- */
+
+.ui-overlay {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #05050bd9;
+  backdrop-filter: blur(6px);
+  z-index: 60;
+  animation: pop 200ms var(--ease);
+}
+.ui-card {
+  min-width: min(340px, 84vw);
+  padding: var(--sp-5);
+  text-align: center;
+  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow);
+}
+.ui-card-title {
+  font-family: var(--font-display);
+  font-size: 20px;
+  margin: 0 0 var(--sp-2);
+  line-height: 1.5;
+}
+.ui-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+  margin-top: var(--sp-5);
+}
+/* ---------------- Pausa con pestañas ---------------- */
+
+.ui-card.pausa { min-width: min(520px, 92vw); text-align: left; }
+.ui-card.pausa .ui-card-title { text-align: center; }
+
+.pausa-pestanas {
+  display: flex;
+  gap: 5px;
+  justify-content: center;
+  margin: var(--sp-4) 0 var(--sp-4);
+}
+.pausa-pestana {
+  padding: 7px 15px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--ink-dim);
+  font-size: 12.5px;
+  transition: all var(--dur-fast);
+}
+.pausa-pestana:hover { background: #ffffff0d; color: var(--ink); }
+.pausa-pestana.on { background: var(--p1); border-color: transparent; color: #0a0a12; font-weight: 600; }
+
+.pausa-panel.oculto { display: none; }
+.pausa-panel .ui-card-actions { margin-top: 0; }
+
+.pausa-desc { margin: 0 0 var(--sp-4); font-size: 13.5px; color: var(--ink-dim); text-align: center; line-height: 1.5; }
+.pausa-cols { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+@media (max-width: 560px) { .pausa-cols { grid-template-columns: 1fr; } }
+.pausa-col {
+  padding: 13px;
+  border-radius: var(--radius);
+  background: #ffffff06;
+  border: 1px solid var(--c);
+}
+.pausa-col h4 { margin: 0 0 8px; font-size: 12.5px; color: var(--c); }
+
+.pausa-fila {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 10px 0;
+  border-bottom: 1px solid #ffffff0a;
+}
+.pausa-fila:last-child { border-bottom: none; }
+.pausa-fila label { font-size: 13.5px; flex: 1; }
+.pausa-fila .sub { display: block; font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+.pausa-fila input[type="range"] { width: 150px; accent-color: var(--p1); }
+
+.win-card { --win: var(--p1); border-color: var(--win); box-shadow: 0 0 60px -10px var(--win); }
+.win-avatar {
+  width: 92px; height: 92px;
+  border-radius: 50%;
+  image-rendering: pixelated;
+  margin-bottom: var(--sp-3);
+  animation: pop 340ms var(--ease);
+}
+.win-emoji { display: flex; justify-content: center; margin-bottom: var(--sp-3); color: var(--gold); }
+.win-name { color: var(--win); text-shadow: 0 0 24px var(--win); }
+.win-sub { margin: 0; color: var(--ink-dim); font-size: 13px; }
+.win-score {
+  font-family: var(--font-display);
+  font-size: 26px;
+  margin: var(--sp-4) 0 0;
+  letter-spacing: 0.06em;
+}
+.win-detail { color: var(--ink-dim); font-size: 13px; margin: var(--sp-2) 0 0; }
+.win-record { color: var(--gold); font-size: 13px; margin: var(--sp-2) 0 0; animation: pulse-glow 1.2s infinite; }
+
+/* ---------------- Cabecera del juego ---------------- */
+
+/* Abajo al centro: arriba lo ocupa el marcador y su texto central, y ahí
+   los botones tapaban el cronómetro de varios juegos. */
+#game-topbar {
+  position: absolute;
+  bottom: 8px; left: 50%;
+  transform: translateX(-50%);
+  z-index: 55;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-2);
+  opacity: 0.22;
+  transition: opacity var(--dur);
+}
+#game-topbar:hover { opacity: 1; }
+
+/* ---------------- Pantalla de carga / error ---------------- */
+
+#loading, #load-error {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: var(--sp-6);
+  z-index: 70;
+}
+#load-error { color: var(--danger); font-family: var(--font-mono); font-size: 13px; }
+#loading .spin {
+  width: 34px; height: 34px;
+  border: 3px solid var(--line);
+  border-top-color: var(--p1);
+  border-radius: 50%;
+  animation: spin 700ms linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------------- Piezas reutilizables para juegos DOM ---------------- */
+
+.board {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border-radius: var(--radius);
+  background: #ffffff08;
+  border: 1px solid var(--line);
+}
+.cell {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  background: #ffffff0a;
+  border: 1px solid #ffffff12;
+  font-family: var(--font-display);
+  transition: background var(--dur-fast), transform var(--dur-fast), box-shadow var(--dur-fast);
+}
+.cell.sel { box-shadow: inset 0 0 0 3px var(--sel, var(--p1)); transform: scale(1.04); z-index: 2; }
+.cell.hl { background: #ffffff1c; }
+.cell.p0 { color: var(--p1); }
+.cell.p1 { color: var(--p2); }
+.turn-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  border: 1px solid currentColor;
+  font-size: 13px;
+  font-weight: 600;
+}
+.turn-badge img { width: 22px; height: 22px; border-radius: 50%; image-rendering: pixelated; }

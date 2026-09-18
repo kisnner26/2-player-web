@@ -1,0 +1,1265 @@
+/* ============================================================
+   hub.css — menú principal
+   Sin cartas: un escenario a sangre con el juego enfocado en
+   movimiento, y debajo rieles de fichas por categoría.
+   ============================================================ */
+
+body.hub { overflow: auto; }
+
+#hub {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(1100px 520px at 12% -18%, #ff2e8814, transparent 62%),
+    radial-gradient(1100px 520px at 88% -18%, #00e5ff12, transparent 62%),
+    var(--bg-0);
+}
+
+/* ---------------- Cabecera ---------------- */
+
+.hub-top {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-4);
+  padding: 10px 20px;
+  min-height: 54px;
+  background: #06060cd9;
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--line);
+  flex-wrap: wrap;
+}
+
+.hub-logo { display: flex; align-items: center; gap: 10px; white-space: nowrap; }
+.hub-mark {
+  width: 22px; height: 22px;
+  flex: none;
+  border-radius: 6px;
+  background: linear-gradient(135deg, var(--p1), var(--p2));
+  position: relative;
+}
+.hub-mark::before, .hub-mark::after {
+  content: '';
+  position: absolute;
+  top: 50%; left: 50%;
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: #06060c;
+  transform: translate(-140%, -50%);
+}
+.hub-mark::after { transform: translate(40%, -50%); }
+.hub-word { font-family: var(--font-display); font-size: 13px; line-height: 1.5; }
+.hub-word b { color: var(--ink); letter-spacing: 0.02em; }
+.hub-word i { color: var(--ink-faint); font-style: normal; font-weight: 400; margin-left: 4px; }
+.hub-logo small {
+  display: block;
+  font-family: var(--font-ui);
+  font-size: 9.5px;
+  color: var(--ink-faint);
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-top: 1px;
+}
+
+/* Rivalidad */
+.rivalry {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 5px 12px;
+  border-radius: 999px;
+  background: #ffffff08;
+  border: 1px solid var(--line);
+  cursor: pointer;
+  transition: border-color var(--dur);
+}
+.rivalry:hover { border-color: #3d3d6b; }
+.riv-side { display: flex; align-items: center; gap: 7px; }
+.riv-side img { width: 24px; height: 24px; border-radius: 50%; image-rendering: pixelated; }
+.riv-num { font-family: var(--font-display); font-size: 14px; }
+.riv-p1 .riv-num { color: var(--p1); }
+.riv-p2 .riv-num { color: var(--p2); }
+.riv-sep { font-size: 10px; color: var(--ink-faint); letter-spacing: 0.1em; }
+
+.hub-acciones { margin-left: auto; display: flex; gap: 6px; flex-wrap: wrap; }
+.hub-acciones .btn { padding: 7px 12px; font-size: 12.5px; }
+.hub-acciones .btn.icon-only { padding: 7px; }
+@media (max-width: 860px) {
+  .hub-acciones .btn:not(.icon-only) span:last-child { display: none; }
+  .hub-acciones .btn:not(.icon-only) { padding: 8px; }
+}
+
+/* ============================================================
+   Escenario
+   ============================================================ */
+
+.escenario {
+  position: relative;
+  height: clamp(292px, 42vh, 420px);
+  overflow: hidden;
+  isolation: isolate;
+  border-bottom: 1px solid var(--line);
+}
+
+.esc-lienzo { position: absolute; inset: 0; }
+.esc-lienzo .retrato { display: block; width: 100%; height: 100%; }
+
+/* Velo: oscurece la mitad izquierda y el pie para que el texto se lea
+   sobre cualquier escena, por clara que sea (las de estética papel lo son). */
+.esc-velo {
+  position: absolute;
+  inset: 0;
+  /* El grueso del velo lateral lo pinta ya el propio lienzo; aquí solo se
+     asienta el pie contra el color de fondo del hub. */
+  background:
+    linear-gradient(100deg, #04040a5c 0%, #04040a1a 22%, transparent 40%),
+    linear-gradient(0deg, var(--bg-0) 1px, #04040ab0 9%, transparent 42%);
+}
+
+.esc-info {
+  position: absolute;
+  left: clamp(20px, 4vw, 54px);
+  bottom: 30px;
+  max-width: min(560px, 62%);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: esc-entra 320ms var(--ease);
+}
+@keyframes esc-entra {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: none; }
+}
+
+.esc-meta {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+.esc-cat {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--cc, var(--p1));
+  font-weight: 700;
+}
+.esc-cat::before {
+  content: '';
+  width: 7px; height: 7px;
+  border-radius: 50%;
+  background: var(--cc, var(--p1));
+  box-shadow: 0 0 12px var(--cc, var(--p1));
+}
+.esc-num { color: var(--ink-faint); font-family: var(--font-mono); }
+
+.esc-titulo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(19px, 3.1vw, 34px);
+  line-height: 1.25;
+  letter-spacing: 0.01em;
+  text-shadow: 0 4px 30px #000, 0 0 40px var(--cc, transparent);
+}
+
+.esc-desc {
+  margin: 0;
+  font-size: 14.5px;
+  line-height: 1.55;
+  color: var(--ink-dim);
+  max-width: 46ch;
+}
+
+.esc-controles { display: flex; flex-wrap: wrap; gap: 6px; }
+.esc-controles .tecla-grupo {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 9px 4px 6px;
+  border-radius: 999px;
+  background: #ffffff0a;
+  border: 1px solid var(--line);
+  font-size: 10.5px;
+  color: var(--ink-dim);
+  letter-spacing: 0.06em;
+}
+.esc-controles .tecla-grupo b { color: var(--tc); font-weight: 700; }
+.esc-controles .kbd { min-width: 18px; padding: 2px 5px; font-size: 10px; }
+
+.esc-acciones { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; margin-top: 4px; }
+
+.btn.jugar {
+  padding: 13px 30px;
+  font-family: var(--font-display);
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  border-radius: 999px;
+  background: linear-gradient(135deg, var(--cc, var(--p1)), color-mix(in srgb, var(--cc, var(--p1)) 45%, #b04cff));
+  border: none;
+  color: #06060c;
+  box-shadow: 0 10px 34px -10px var(--cc, var(--p1));
+}
+.btn.jugar.pide-mando {
+  background: transparent;
+  border: 2px solid var(--lime);
+  color: var(--lime);
+  box-shadow: none;
+}
+.btn.jugar:hover { transform: translateY(-2px); filter: brightness(1.12); }
+.btn.jugar:active { transform: translateY(0) scale(0.98); }
+
+.esc-historial {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 11px;
+  color: var(--ink-faint);
+  letter-spacing: 0.05em;
+}
+.esc-historial b { font-family: var(--font-display); font-size: 13px; }
+.esc-historial .h1 { color: var(--p1); }
+.esc-historial .h2 { color: var(--p2); }
+.esc-historial .barra {
+  width: 64px; height: 5px;
+  border-radius: 3px;
+  background: var(--p2);
+  overflow: hidden;
+}
+.esc-historial .barra i { display: block; height: 100%; background: var(--p1); }
+
+.esc-pista {
+  position: absolute;
+  right: clamp(16px, 3vw, 32px);
+  bottom: 18px;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  letter-spacing: 0.05em;
+}
+.esc-pista .kbd { min-width: 18px; padding: 2px 5px; font-size: 10px; }
+@media (max-width: 900px) {
+  .esc-pista { display: none; }
+  .esc-info { max-width: 88%; }
+}
+
+/* ============================================================
+   Cuerpo: barra lateral de categorías + contenido
+   ============================================================ */
+
+.hub-cuerpo { display: flex; align-items: flex-start; min-height: 0; }
+
+/* Columna de iconos al estilo del panel de una consola. Está colapsada por
+   defecto y se abre al pasar el ratón o al recibir el foco por teclado, de
+   modo que no roba ancho al catálogo pero tampoco esconde los nombres. */
+.hub-lateral {
+  position: sticky;
+  top: 54px;
+  z-index: 22;
+  flex: none;
+  width: 58px;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 12px 9px;
+  align-self: stretch;
+  background: linear-gradient(90deg, #08080fF2, #08080fcc);
+  border-right: 1px solid var(--line);
+  transition: width var(--dur) var(--ease);
+  overflow: hidden;
+}
+.hub-lateral:hover, .hub-lateral:focus-within { width: 208px; }
+
+.lat-sep { height: 1px; background: var(--line); margin: 7px 4px; flex: none; }
+
+.lat-item {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 9px;
+  border: 1px solid transparent;
+  color: var(--ink-dim);
+  font-size: 13px;
+  white-space: nowrap;
+  transition: background var(--dur-fast), color var(--dur-fast);
+}
+.lat-item:hover { background: #ffffff0f; color: var(--ink); }
+.lat-item.on {
+  background: color-mix(in srgb, var(--lc) 16%, transparent);
+  color: var(--ink);
+  border-color: color-mix(in srgb, var(--lc) 40%, transparent);
+}
+/* Barrita de selección a la izquierda: la señal de "estás aquí" de consola. */
+.lat-item.on::before {
+  content: '';
+  position: absolute;
+  left: -9px; top: 50%;
+  width: 3px; height: 60%;
+  transform: translateY(-50%);
+  border-radius: 0 3px 3px 0;
+  background: var(--lc);
+  box-shadow: 0 0 12px var(--lc);
+}
+.lat-icono { flex: none; display: grid; place-items: center; width: 20px; color: var(--lc); }
+.lat-nombre {
+  flex: 1;
+  opacity: 0;
+  transition: opacity var(--dur-fast);
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lat-n {
+  font-family: var(--font-mono);
+  font-size: 10.5px;
+  color: var(--ink-faint);
+  opacity: 0;
+  transition: opacity var(--dur-fast);
+}
+.hub-lateral:hover .lat-nombre,
+.hub-lateral:hover .lat-n,
+.hub-lateral:focus-within .lat-nombre,
+.hub-lateral:focus-within .lat-n { opacity: 1; }
+
+/* Punto de "aquí queda algo por estrenar", visible incluso plegada. */
+.lat-punto {
+  position: absolute;
+  top: 7px; left: 26px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--lime);
+  box-shadow: 0 0 8px var(--lime);
+}
+
+.hub-contenido { flex: 1; min-width: 0; }
+
+/* ---------------- Barra de progreso y búsqueda ---------------- */
+
+.hub-barra {
+  position: sticky;
+  top: 54px;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 18px 10px;
+  flex-wrap: wrap;
+  background: linear-gradient(180deg, var(--bg-0) 62%, transparent);
+}
+
+.hub-progreso { display: flex; align-items: center; gap: 10px; }
+.prog-barra {
+  width: 120px; height: 5px;
+  border-radius: 3px;
+  background: #ffffff14;
+  overflow: hidden;
+}
+.prog-barra i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--lime), var(--p2));
+  transition: width var(--dur) var(--ease);
+}
+.prog-texto { font-size: 11.5px; color: var(--ink-faint); letter-spacing: 0.04em; }
+.prog-texto b { color: var(--ink); font-family: var(--font-mono); }
+
+.filtro-nuevos {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  background: transparent;
+  border: 1px solid var(--line);
+  color: var(--ink-dim);
+  font-size: 12.5px;
+  transition: all var(--dur-fast);
+}
+.filtro-nuevos:hover { background: #ffffff0d; color: var(--ink); }
+.filtro-nuevos.on {
+  background: var(--lime);
+  border-color: transparent;
+  color: #06060c;
+  font-weight: 600;
+}
+
+.buscador {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 6px 13px;
+  border-radius: 999px;
+  background: #ffffff0a;
+  border: 1px solid var(--line);
+  color: var(--ink-faint);
+  transition: border-color var(--dur-fast);
+}
+.buscador:focus-within { border-color: var(--p1); color: var(--p1); }
+.buscador input {
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 12.5px;
+  width: 170px;
+  color: var(--ink);
+}
+.buscador input::placeholder { color: var(--ink-faint); }
+
+@media (max-width: 720px) {
+  .hub-lateral { width: 50px; padding: 10px 7px; }
+  .hub-lateral:hover, .hub-lateral:focus-within { width: 190px; }
+  .buscador input { width: 120px; }
+}
+
+/* ============================================================
+   Rieles y fichas
+   ============================================================ */
+
+.hub-lista { padding: 0 0 40px; }
+
+.riel { margin-bottom: 6px; }
+
+.riel-top {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  padding: 14px 18px 9px;
+}
+.riel-top h2 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  color: var(--ink);
+}
+.riel-top .riel-icono { color: var(--rc); align-self: center; }
+.riel-top .riel-n {
+  font-size: 10px;
+  color: var(--rc);
+  font-family: var(--font-mono);
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--rc) 18%, transparent);
+}
+.riel-top .riel-desc {
+  font-size: 11.5px;
+  color: var(--ink-faint);
+  margin-left: 4px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.riel-nav { margin-left: auto; display: flex; gap: 5px; align-self: center; }
+.riel-nav button {
+  width: 26px; height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 1px solid var(--line);
+  color: var(--ink-dim);
+  transition: all var(--dur-fast);
+}
+.riel-nav button:hover { background: var(--rc); border-color: transparent; color: #06060c; }
+
+/* La pista se desborda a sangre por la derecha: sugiere que hay más. */
+.riel-pista {
+  display: flex;
+  gap: 12px;
+  padding: 4px 18px 16px;
+  overflow-x: auto;
+  scroll-snap-type: x proximity;
+  scrollbar-width: none;
+  scroll-padding-left: 18px;
+}
+.riel-pista::-webkit-scrollbar { display: none; }
+
+/* Mural: una categoría concreta o los resultados de búsqueda, en rejilla. */
+.mural {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  padding: 4px 18px 16px;
+}
+
+/* ---------------- Ficha ---------------- */
+
+.ficha {
+  position: relative;
+  flex: none;
+  width: 194px;
+  aspect-ratio: 4 / 5;
+  padding: 0;
+  border: none;
+  border-radius: 14px;
+  overflow: hidden;
+  scroll-snap-align: start;
+  background: var(--bg-1);
+  text-align: left;
+  isolation: isolate;
+  transition: transform var(--dur) var(--ease), box-shadow var(--dur);
+  box-shadow: 0 2px 14px -6px #000;
+}
+.mural .ficha { width: auto; }
+
+.ficha .retrato {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  transition: transform 480ms var(--ease);
+}
+
+/* Aro de color: siempre presente, se enciende al enfocar. */
+.ficha::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  border: 1px solid #ffffff14;
+  transition: border-color var(--dur), box-shadow var(--dur);
+  pointer-events: none;
+  z-index: 3;
+}
+
+.ficha:hover, .ficha.enfocada { transform: translateY(-6px); }
+.ficha:hover::after, .ficha.enfocada::after {
+  border-color: var(--cc);
+  box-shadow: inset 0 0 0 1px var(--cc), 0 0 26px -6px var(--cc);
+}
+.ficha:hover, .ficha.enfocada { box-shadow: 0 18px 40px -18px var(--cc); }
+.ficha:hover .retrato, .ficha.enfocada .retrato { transform: scale(1.06); }
+.ficha:focus-visible { outline: 2px solid var(--cc); outline-offset: 3px; }
+
+.ficha-num {
+  position: absolute;
+  top: 9px; right: 10px;
+  z-index: 2;
+  font-family: var(--font-mono);
+  font-size: 9.5px;
+  color: #ffffff8c;
+  letter-spacing: 0.08em;
+}
+
+.ficha-etiquetas {
+  position: absolute;
+  top: 8px; left: 9px;
+  z-index: 2;
+  display: flex;
+  gap: 4px;
+}
+.ficha-etiquetas span {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  background: #06060cb0;
+  backdrop-filter: blur(4px);
+  font-size: 8px;
+  letter-spacing: 0.09em;
+  color: #ffffffcc;
+}
+/* Los que piden iPad se marcan en verde: sin mando no se pueden jugar y
+   conviene verlo desde el catálogo, no al entrar. */
+.ficha-etiquetas .et-mando { background: #3effc8; color: #06060c; font-weight: 700; }
+
+/* Sin estrenar. Con más de setenta juegos, esto es lo que responde de un
+   vistazo a "¿cuáles nos faltan?" sin tener que abrir ningún menú. */
+.ficha-etiquetas .et-nuevo {
+  background: var(--lime);
+  color: #06060c;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  box-shadow: 0 0 14px -2px var(--lime);
+}
+/* Los ya probados se apagan un poco: los que faltan destacan solos, sin
+   necesidad de gritar con más color. */
+.ficha.probado .retrato { opacity: 0.62; transition: opacity var(--dur); }
+.ficha.probado:hover .retrato, .ficha.probado.enfocada .retrato { opacity: 1; }
+.ficha.probado .ficha-nombre { color: var(--ink-dim); }
+.ficha.probado:hover .ficha-nombre, .ficha.probado.enfocada .ficha-nombre { color: var(--ink); }
+.ficha.es-nuevo::after { border-color: color-mix(in srgb, var(--lime) 45%, transparent); }
+
+.ficha-pie {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 26px 12px 11px;
+  background: linear-gradient(0deg, #04040af5 26%, #04040ab0 62%, transparent);
+}
+.ficha-nombre {
+  font-size: 13.5px;
+  font-weight: 650;
+  line-height: 1.25;
+  letter-spacing: 0.005em;
+}
+.ficha-dato {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  font-size: 9.5px;
+  color: var(--ink-faint);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.ficha-dato .barra {
+  margin-left: auto;
+  width: 30px; height: 3px;
+  border-radius: 2px;
+  background: var(--p2);
+  overflow: hidden;
+}
+.ficha-dato .barra i { display: block; height: 100%; background: var(--p1); }
+
+.vacio {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  color: var(--ink-faint);
+}
+
+@media (max-width: 620px) {
+  .ficha { width: 152px; }
+  .mural { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+
+/* ============================================================
+   Modales (perfiles, ajustes, torneo, rivalidad)
+   ============================================================ */
+
+.modal-fondo {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: #04040adb;
+  backdrop-filter: blur(10px);
+  animation: pop 180ms var(--ease);
+  overflow: auto;
+}
+.modal {
+  width: min(680px, 100%);
+  max-height: 88vh;
+  overflow-y: auto;
+  padding: var(--sp-5);
+  border-radius: var(--radius-lg);
+  background: linear-gradient(180deg, var(--bg-2), var(--bg-1));
+  border: 1px solid var(--line);
+  box-shadow: var(--shadow);
+}
+.modal h2 {
+  font-family: var(--font-display);
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 var(--sp-5);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.modal h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--ink-faint);
+  margin: var(--sp-5) 0 var(--sp-3);
+}
+.modal-cerrar {
+  float: right;
+  color: var(--ink-dim);
+  line-height: 1;
+  padding: 2px;
+  display: grid;
+  place-items: center;
+}
+
+.fila {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: 10px 0;
+  border-bottom: 1px solid #ffffff0a;
+}
+.fila:last-child { border-bottom: none; }
+.fila label { font-size: 14px; flex: 1; }
+.fila .sub { display: block; font-size: 11px; color: var(--ink-faint); margin-top: 2px; }
+
+input[type="range"] { width: 170px; accent-color: var(--p1); }
+input[type="text"], select {
+  padding: 8px 12px;
+  border-radius: var(--radius-sm);
+  background: #ffffff0d;
+  border: 1px solid var(--line);
+  outline: none;
+  font-size: 14px;
+}
+input[type="text"]:focus, select:focus { border-color: var(--p1); }
+
+.switch {
+  position: relative;
+  width: 46px; height: 26px;
+  border-radius: 999px;
+  background: #ffffff1a;
+  border: 1px solid var(--line);
+  transition: background var(--dur);
+  flex: none;
+}
+.switch::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 20px; height: 20px;
+  border-radius: 50%;
+  background: var(--ink-dim);
+  transition: transform var(--dur) var(--ease), background var(--dur);
+}
+.switch.on { background: var(--p1); }
+.switch.on::after { transform: translateX(20px); background: #fff; }
+
+/* ---------------- Perfiles ---------------- */
+
+.perfiles { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); }
+@media (max-width: 620px) { .perfiles { grid-template-columns: 1fr; } }
+
+.perfil {
+  padding: var(--sp-4);
+  border-radius: var(--radius);
+  background: #ffffff06;
+  border: 1px solid var(--line);
+  text-align: center;
+}
+.perfil-av {
+  width: 108px; height: 108px;
+  border-radius: 50%;
+  image-rendering: pixelated;
+  margin: 0 auto var(--sp-3);
+  display: block;
+  cursor: pointer;
+  transition: transform var(--dur) var(--ease);
+}
+.perfil-av:hover { transform: scale(1.05); }
+.perfil input[type="text"] { width: 100%; text-align: center; margin-bottom: var(--sp-3); }
+
+.colores { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-bottom: var(--sp-3); }
+.color-op {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  transition: transform var(--dur-fast);
+}
+.color-op:hover { transform: scale(1.18); }
+.color-op.on { border-color: #fff; box-shadow: 0 0 14px currentColor; }
+
+.emojis { display: flex; flex-wrap: wrap; gap: 4px; justify-content: center; }
+.emoji-op {
+  width: 30px; height: 30px;
+  border-radius: 8px;
+  font-size: 17px;
+  transition: background var(--dur-fast);
+}
+.emoji-op:hover { background: #ffffff14; }
+.emoji-op.on { background: #ffffff22; box-shadow: inset 0 0 0 2px var(--ink-dim); }
+
+/* ---------------- Creador de personaje ---------------- */
+
+.perfil-botones { display: flex; gap: 6px; justify-content: center; margin-bottom: var(--sp-3); flex-wrap: wrap; }
+.perfil-botones .btn { padding: 6px 10px; font-size: 11.5px; }
+
+.cas { display: grid; grid-template-columns: 300px 1fr; gap: var(--sp-5); align-items: start; }
+@media (max-width: 760px) { .cas { grid-template-columns: 1fr; } }
+
+.cas-vista {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  border-radius: var(--radius);
+  background:
+    radial-gradient(160px 130px at 50% 20%, #ffffff10, transparent 70%),
+    linear-gradient(180deg, #12121f, #0a0a14);
+  border: 1px solid var(--line);
+  /* Se queda a la vista mientras se recorren los rasgos: el muñeco es la
+     referencia de todo lo que se toca a la derecha. */
+  position: sticky;
+  top: 0;
+}
+@media (max-width: 760px) { .cas-vista { position: static; } }
+
+/* La peana es la zona de arrastre: el cursor lo anuncia. */
+.cas-peana { cursor: ew-resize; touch-action: none; user-select: none; }
+.cas-vista canvas {
+  width: 220px;
+  height: 280px;
+  image-rendering: pixelated;
+  display: block;
+}
+/* El sprite de reserva solo aparece si falla el 3D. La regla de arriba le
+   ponía `display:block`, que pesa más que el `[hidden]` del navegador: el
+   canvas oculto seguía ocupando sus 280 px y ése era el hueco muerto entre el
+   muñeco y los controles de girar. */
+.cas-vista canvas[hidden] { display: none; }
+
+/* Visor 3D. Arranca invisible y aparece cuando Three.js ha montado la
+   escena, para que no se vea un hueco negro mientras carga el módulo. */
+.cas-3d {
+  width: 232px;
+  height: 290px;
+  opacity: 0;
+  transition: opacity 260ms var(--ease);
+}
+.cas-3d.listo { opacity: 1; }
+.cas-3d canvas { width: 100% !important; height: 100% !important; image-rendering: auto; }
+
+/* Los tres controles de abajo comparten rejilla para que las columnas caigan
+   siempre en la misma vertical. Antes eran tres filas de flex-wrap y cada una
+   se centraba por su cuenta: los botones salían escalonados. */
+.cas-giro { display: grid; grid-template-columns: 34px 1fr 34px; align-items: center; gap: 8px; width: 100%; }
+.cas-giro input[type="range"] { width: 100%; accent-color: var(--p1); }
+
+.cas-poses,
+.cas-extras { display: grid; gap: 6px; width: 100%; }
+.cas-poses { grid-template-columns: repeat(3, 1fr); }
+.cas-extras { grid-template-columns: repeat(2, 1fr); }
+.cas-poses .btn,
+.cas-extras .btn { padding: 8px 4px; font-size: 12px; width: 100%; }
+
+.cas-panel { display: flex; flex-direction: column; gap: 12px; min-width: 0; }
+
+/* Pestañas a partes iguales: repartidas ocupan el ancho del panel y se leen
+   como un selector, no como una fila de botones sueltos. */
+.cas-pestanas { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 6px; }
+
+/* Pie del creador: acciones alineadas a la derecha y separadas por una línea,
+   para que se lean como el cierre del formulario y no como dos botones más. */
+.cas-pie {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: var(--sp-5);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--line);
+}
+.cas-pie .btn { padding: 11px 22px; }
+.cas-pestana {
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  color: var(--ink-dim);
+  font-size: 12.5px;
+  transition: all var(--dur-fast);
+}
+.cas-pestana:hover { background: #ffffff0d; color: var(--ink); }
+.cas-pestana.on { background: var(--p1); border-color: transparent; color: #0a0a12; font-weight: 600; }
+
+/* Ya no scrollea por dentro: con el visor pegado arriba, el que se mueve es el
+   modal entero. Dos barras de scroll anidadas —una para el panel y otra para
+   el modal— era justo lo que hacía que nunca supieras dónde estabas. */
+.cas-rasgos {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.cas-rasgo {
+  padding: 14px 16px;
+  border-radius: var(--radius);
+  background: #ffffff08;
+  border: 1px solid var(--line);
+}
+.cas-etiqueta {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  font-size: 12px;
+  color: var(--ink-faint);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+.cas-etiqueta b {
+  font-size: 12.5px;
+  color: var(--ink);
+  text-transform: none;
+  letter-spacing: 0;
+  font-weight: 600;
+}
+
+/* Rejilla de opciones: cada una dibujada, para elegir mirando y no leyendo.
+   Es rejilla de verdad y no `flex-wrap`, así las filas caen alineadas y las
+   opciones reparten el ancho del panel en vez de amontonarse a la izquierda
+   dejando medio bloque vacío. */
+/* Columnas de ancho FIJO y la rejilla centrada.
+   Con columnas elásticas cada rasgo salía con fichas de un tamaño distinto
+   —cinco opciones daban fichas anchas y doce, estrechas— y los bloques no se
+   parecían entre sí. Fijando la columna, una ficha mide lo mismo en todo el
+   editor; centrando la rejilla, una fila corta queda repartida en vez de
+   apelotonada a la izquierda. */
+.cas-opciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, 74px);
+  gap: 10px;
+  justify-content: center;
+  justify-items: center;
+}
+/* Los colores son fichas pequeñas: caben muchas más por fila. */
+.cas-opciones:has(.cas-op-color) {
+  grid-template-columns: repeat(auto-fit, 46px);
+}
+.cas-op {
+  padding: 0;
+  border-radius: 9px;
+  border: 2px solid transparent;
+  background: #ffffff08;
+  overflow: hidden;
+  transition: border-color var(--dur-fast), transform var(--dur-fast);
+  line-height: 0;
+}
+.cas-op:hover { transform: translateY(-2px); border-color: #ffffff33; }
+.cas-op.on { border-color: var(--p1); box-shadow: 0 0 16px -4px var(--p1); }
+.cas-mini { width: 44px; height: 56px; image-rendering: pixelated; display: block; }
+
+.cas-op-color {
+  width: 30px; height: 30px;
+  border-radius: 50%;
+  border-width: 2px;
+}
+.cas-op-color.on { border-color: #fff; box-shadow: 0 0 14px currentColor; }
+.cas-flecha {
+  width: 30px; height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+  background: #ffffff10;
+  border: 1px solid var(--line);
+  color: var(--ink-dim);
+  transition: all var(--dur-fast);
+}
+.cas-flecha:hover { background: var(--p1); border-color: transparent; color: #06060c; }
+.cas-flecha:active { transform: scale(0.92); }
+
+/* ---------------- Editor de avatar ---------------- */
+
+.av { display: grid; grid-template-columns: 220px 1fr; gap: var(--sp-5); }
+@media (max-width: 620px) { .av { grid-template-columns: 1fr; } }
+.av-vista {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--sp-3);
+}
+.av-vista canvas, .av-vista img {
+  width: 200px; height: 200px;
+  border-radius: 50%;
+  image-rendering: pixelated;
+  background: #0a0a14;
+}
+.av-mandos { display: flex; flex-direction: column; gap: var(--sp-2); }
+.av-estilos { display: flex; flex-wrap: wrap; gap: 6px; }
+.av-estilo {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--line);
+  font-size: 12px;
+  color: var(--ink-dim);
+}
+.av-estilo.on { background: var(--p1); border-color: transparent; color: #0a0a12; font-weight: 600; }
+.av-deslizador { display: flex; align-items: center; gap: 10px; font-size: 12px; color: var(--ink-dim); }
+.av-deslizador span { width: 74px; flex: none; }
+.av-deslizador input { flex: 1; width: auto; }
+.av-soltar {
+  border: 2px dashed var(--line);
+  border-radius: var(--radius);
+  padding: var(--sp-5);
+  text-align: center;
+  color: var(--ink-faint);
+  font-size: 13px;
+  transition: border-color var(--dur), background var(--dur);
+  cursor: pointer;
+}
+.av-soltar.activo { border-color: var(--p1); background: #ff2e8814; color: var(--ink); }
+
+/* ---------------- Remapeo y test de teclado ---------------- */
+
+.mapa { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-5); }
+@media (max-width: 620px) { .mapa { grid-template-columns: 1fr; } }
+.mapa-col h4 { font-size: 13px; margin: 0 0 10px; }
+.mapa-fila {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 13px;
+}
+.mapa-fila span { flex: 1; color: var(--ink-dim); }
+.tecla-btn {
+  min-width: 84px;
+  padding: 6px 10px;
+  border-radius: var(--radius-sm);
+  background: #ffffff10;
+  border: 1px solid var(--line);
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+.tecla-btn.esperando { background: var(--p1); color: #0a0a12; animation: pulse-glow 0.9s infinite; }
+.tecla-btn.conflicto { border-color: var(--danger); color: var(--danger); }
+
+.test-teclado {
+  padding: var(--sp-4);
+  border-radius: var(--radius);
+  background: #ffffff06;
+  border: 1px solid var(--line);
+  text-align: center;
+}
+.test-num { font-family: var(--font-display); font-size: 34px; margin: 8px 0; }
+.test-teclas { display: flex; flex-wrap: wrap; gap: 5px; justify-content: center; min-height: 30px; margin-top: 10px; }
+.test-veredicto { font-size: 13px; margin-top: 10px; }
+
+/* ---------------- Torneo / Rivalidad ---------------- */
+
+.torneo-lista { display: flex; flex-direction: column; gap: 6px; margin: var(--sp-4) 0; }
+.torneo-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: var(--radius-sm);
+  background: #ffffff08;
+  border: 1px solid var(--line);
+  font-size: 14px;
+}
+.torneo-item.hecho { opacity: 0.45; }
+.torneo-item.actual { border-color: var(--p1); box-shadow: 0 0 20px -8px var(--p1); }
+.torneo-item .n { font-family: var(--font-display); font-size: 12px; color: var(--ink-faint); width: 22px; }
+.torneo-item .gana { margin-left: auto; font-size: 12px; }
+.resultado-linea {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  font-size: 15px; text-align: center;
+}
+.resultado-linea .icon { color: var(--gold); }
+
+/* ---------------- Sala de mandos ---------------- */
+
+.hub-acciones .btn.activo {
+  background: var(--lime);
+  border-color: transparent;
+  color: #06060c;
+  font-weight: 700;
+}
+
+.sala-codigo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 18px;
+  margin: var(--sp-4) 0;
+  border-radius: var(--radius);
+  background: linear-gradient(160deg, #ffffff10, #ffffff04);
+  border: 1px solid var(--line);
+}
+.sala-etiqueta {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+}
+.sala-codigo b {
+  font-family: var(--font-display);
+  font-size: 40px;
+  letter-spacing: 0.22em;
+  text-indent: 0.22em;
+  color: var(--lime);
+  text-shadow: 0 0 26px #a8ff3e66;
+}
+
+.sala-url {
+  padding: 11px 14px;
+  border-radius: var(--radius-sm);
+  background: #06060c;
+  border: 1px solid var(--line);
+  overflow-x: auto;
+}
+.sala-url code {
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--p2);
+  white-space: nowrap;
+}
+
+.sala-mandos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: var(--sp-3); }
+@media (max-width: 520px) { .sala-mandos { grid-template-columns: 1fr; } }
+.sala-mando {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  padding: 14px 10px;
+  border-radius: var(--radius);
+  background: #ffffff06;
+  border: 1px solid var(--line);
+  text-align: center;
+}
+.sala-mando img { width: 44px; height: 44px; border-radius: 50%; image-rendering: pixelated; }
+.sala-mando b { font-size: 14px; }
+.sala-mando span { font-size: 11px; color: var(--ink-faint); }
+.sala-mando.on { border-color: var(--mc); box-shadow: 0 0 22px -10px var(--mc); }
+.sala-mando.on span { color: var(--lime); }
+
+/* ---------------- Estado de la Touch Bar ---------------- */
+
+.tb-estado {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  background: #ffffff06;
+  border: 1px solid var(--line);
+  font-size: 13px;
+  color: var(--ink-dim);
+}
+.tb-estado .punto {
+  width: 9px; height: 9px;
+  border-radius: 50%;
+  background: var(--danger);
+  flex: none;
+}
+.tb-estado.ok .punto { background: var(--lime); box-shadow: 0 0 12px var(--lime); }
+
+/* ---------------- Favorito ----------------
+   La estrella vive DENTRO del botón de la ficha, así que su clic se para en
+   el manejador (ver hub.js): si no, marcar favorito lanzaría la partida.
+   Sin marcar es casi invisible y solo aparece al pasar por encima; marcada
+   se queda siempre, que es justo lo que tiene que distinguirse de un vistazo. */
+.ficha-fav {
+  position: absolute;
+  top: 8px; left: 9px;
+  z-index: 3;
+  display: grid;
+  place-items: center;
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  color: #ffffff9c;
+  background: #06060c8c;
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity var(--dur-fast), color var(--dur-fast), transform var(--dur-fast);
+}
+.ficha:hover .ficha-fav, .ficha.enfocada .ficha-fav { opacity: 1; }
+.ficha-fav:hover { transform: scale(1.15); color: var(--gold, #ffd166); }
+.ficha-fav.on {
+  opacity: 1;
+  color: #ffd166;
+  background: #06060cb8;
+}
+/* Con la estrella arriba a la izquierda, los distintivos se corren para que
+   no se pisen. */
+.ficha:hover .ficha-etiquetas, .ficha.enfocada .ficha-etiquetas,
+.ficha:has(.ficha-fav.on) .ficha-etiquetas { transform: translateX(30px); }
+.ficha-etiquetas { transition: transform var(--dur-fast); }
+
+/* ---------------- Logros ----------------
+   Los conseguidos se ven a todo color y los que faltan quedan apagados pero
+   LEGIBLES: si no se lee lo que falta, no hay nada que perseguir. */
+.logros { display: flex; flex-direction: column; gap: 8px; }
+.logro {
+  display: grid;
+  grid-template-columns: 38px 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: var(--radius);
+  background: #ffffff06;
+  border: 1px solid var(--line);
+  opacity: 0.55;
+  transition: opacity var(--dur), border-color var(--dur);
+}
+.logro.on { opacity: 1; border-color: color-mix(in srgb, var(--gold, #ffd166) 45%, transparent); }
+.logro-icono {
+  display: grid;
+  place-items: center;
+  width: 38px; height: 38px;
+  border-radius: 11px;
+  background: #ffffff0f;
+  color: var(--ink-dim);
+}
+.logro.on .logro-icono { background: color-mix(in srgb, var(--gold, #ffd166) 22%, transparent); color: var(--gold, #ffd166); }
+.logro-txt { min-width: 0; }
+.logro-txt b { display: block; font-size: 14px; }
+.logro-txt small { display: block; font-size: 11.5px; color: var(--ink-faint); margin-top: 2px; line-height: 1.4; }
+.logro-prog {
+  position: relative;
+  min-width: 58px;
+  text-align: right;
+  font-size: 12px;
+  color: var(--ink-faint);
+  font-variant-numeric: tabular-nums;
+}
+.logro.on .logro-prog { color: var(--gold, #ffd166); }
+/* Barra fina bajo el contador: enseña «cuánto falta» sin ocupar una fila. */
+.logro-prog i {
+  position: absolute;
+  left: 0; right: auto; bottom: -7px;
+  height: 3px;
+  border-radius: 2px;
+  background: var(--gold, #ffd166);
+  opacity: 0.6;
+}
+
+/* Aviso de logro conseguido: entra por la esquina y se va solo. No se enseña
+   dentro de la partida, solo al volver al menú. */
+.logro-aviso {
+  position: fixed;
+  right: 18px; bottom: 18px;
+  z-index: 200;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px 18px;
+  border-radius: 16px;
+  background: linear-gradient(180deg, #1a1626, #12101c);
+  border: 1px solid color-mix(in srgb, var(--gold, #ffd166) 45%, transparent);
+  box-shadow: 0 20px 44px -22px #000, 0 0 0 1px #0006;
+  color: var(--gold, #ffd166);
+  animation: logro-entra 340ms var(--ease);
+  transition: opacity 380ms, transform 380ms;
+}
+.logro-aviso.fuera { opacity: 0; transform: translateY(14px); }
+.logro-aviso span { display: flex; flex-direction: column; }
+.logro-aviso small { font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; opacity: 0.7; }
+.logro-aviso b { font-size: 15px; color: var(--ink); }
+@keyframes logro-entra { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+
+/* El mensaje de «aquí no hay nada» explica por qué, así que necesita dos
+   niveles: la razón, y qué hacer al respecto. */
+.vacio small {
+  display: block;
+  margin-top: 10px;
+  font-size: 12.5px;
+  opacity: 0.7;
+  line-height: 1.6;
+  max-width: 42ch;
+  margin-inline: auto;
+}
+
+/* Escenario sin juego enfocado (una sección vacía): se oculta el esqueleto en
+   vez de enseñar un título «—» y un botón sin texto. */
+.escenario.sin-juego .esc-info,
+.escenario.sin-juego .esc-pista { display: none; }
+.escenario.sin-juego { opacity: 0.35; }

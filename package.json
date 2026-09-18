@@ -1,0 +1,10 @@
+{
+  "name": "2-player-arcade",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Minijuegos locales para dos jugadores en una misma Mac, con mandos táctiles por red local.",
+  "type": "module",
+  "scripts": {
+    "start": "node server/servidor.js 8765"
+  }
+}

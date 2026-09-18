@@ -1,0 +1,15 @@
+{
+  "name": "dos-jugadores-arcade",
+  "productName": "2 Player Arcade",
+  "version": "1.0.0",
+  "description": "50 minijuegos locales para dos jugadores en una misma Mac, con 10 exclusivos de Touch Bar",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "start:forzar-touchbar": "FORZAR_TOUCHBAR=1 electron ."
+  },
+  "devDependencies": {
+    "electron": "^33.0.0"
+  }
+}

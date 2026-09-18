@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#06060c">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>Mando · 2 Player Arcade</title>
+  <link rel="stylesheet" href="core/theme.css">
+  <link rel="stylesheet" href="core/mando.css">
+  <link rel="stylesheet" href="core/consola.css">
+  <!-- El iPad tiene su propio localStorage, así que aquí la piel no la hereda
+       de la Mac: se decide con el ajuste guardado en ESTE aparato y, si no hay
+       ninguno, sale la de consola (que es la de fábrica). -->
+  <script>
+    try {
+      const s = JSON.parse(localStorage.getItem('2pa:settings') || '{}').skin;
+      // 'wiiu' es el nombre viejo de esta piel: se acepta para no dejar sin
+      // aspecto a quien la tuviera ya guardada.
+      document.documentElement.dataset.skin = (!s || s === 'wiiu') ? 'consola' : s;
+    } catch { document.documentElement.dataset.skin = 'consola'; }
+    // Con la piel clara, la barra de estado del iPhone en negro se vería como
+    // una franja negra sobre la carcasa blanca del mando.
+    if (document.documentElement.dataset.skin === 'consola') {
+      document.querySelector('meta[name="theme-color"]').content = '#f6fafd';
+      document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]').content = 'default';
+    }
+  </script>
+</head>
+<body class="mando">
+
+  <!-- Emparejamiento: se pide el código que muestra la Mac. -->
+  <section class="pantalla" id="p-entrar">
+    <div class="entrar-caja">
+      <span class="hub-mark" aria-hidden="true"></span>
+      <h1>2 PLAYER<i>ARCADE</i></h1>
+      <p class="entrar-ayuda">Escribe el código de sala que aparece en la Mac.</p>
+
+      <input id="codigo" class="codigo-input" type="text" inputmode="latin"
+             autocomplete="off" autocapitalize="characters" autocorrect="off"
+             spellcheck="false" maxlength="4" placeholder="––––" aria-label="Código de sala">
+
+      <div class="elige-jugador">
+        <button class="jug jug1 on" data-slot="0">Jugador 1</button>
+        <button class="jug jug2" data-slot="1">Jugador 2</button>
+      </div>
+
+      <button class="btn primary grande" id="btn-entrar">Conectar</button>
+      <p class="entrar-error" id="entrar-error"></p>
+    </div>
+  </section>
+
+  <!-- Mando en uso. La botonera la dicta la Mac según el juego. -->
+  <section class="pantalla oculta" id="p-mando">
+    <header class="mando-top">
+      <span class="mando-quien" id="mando-quien">Jugador 1</span>
+      <span class="mando-juego" id="mando-juego">Menú</span>
+      <button class="mando-salir" id="mando-salir" aria-label="Salir">✕</button>
+    </header>
+
+    <div class="mando-aviso oculta" id="mando-aviso"></div>
+
+    <!-- Se rellena desde core/mando.js según el perfil recibido. -->
+    <div class="mando-cuerpo" id="mando-cuerpo"></div>
+
+    <p class="mando-pie" id="mando-pie">Mira la pantalla de la Mac</p>
+  </section>
+
+  <script type="module" src="core/mando.js"></script>
+</body>
+</html>

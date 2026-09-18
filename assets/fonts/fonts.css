@@ -1,0 +1,30 @@
+/* ============================================================
+   Tipografías
+   ============================================================
+
+   El proyecto NO trae ninguna fuente empaquetada: funciona al 100% con las
+   tipografías del sistema, así que pesa cero y no depende de internet.
+
+   Si quieres el look arcade auténtico, descarga "Press Start 2P" (licencia
+   SIL Open Font License 1.1, uso libre incluso comercial) desde
+   https://fonts.google.com/specimen/Press+Start+2P, deja el archivo
+   `PressStart2P-Regular.woff2` en esta misma carpeta y descomenta el bloque
+   de abajo. El resto del proyecto ya la pide por nombre en --font-display,
+   con `Courier New` y `monospace` como reserva.
+
+   ------------------------------------------------------------
+   @font-face {
+     font-family: 'Press Start 2P';
+     src: url('PressStart2P-Regular.woff2') format('woff2');
+     font-weight: 400;
+     font-style: normal;
+     font-display: swap;
+   }
+   ------------------------------------------------------------ */
+
+/* Reserva del sistema: en macOS, SF Mono da un aspecto limpio y consistente
+   sin descargar nada. Los tamaños de --font-display están calibrados para
+   que el diseño no se rompa con ninguna de las dos. */
+:root {
+  --font-display-fallback: "SF Mono", ui-monospace, Menlo, "Courier New", monospace;
+}

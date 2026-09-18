@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "arcade",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server/servidor.js", "8765"],
+      "port": 8765
+    }
+  ]
+}

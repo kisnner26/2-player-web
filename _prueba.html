@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <title>Prueba de humo de los 50 juegos</title>
+  <link rel="stylesheet" href="core/theme.css">
+  <link rel="stylesheet" href="core/game.css">
+  <style>
+    body { overflow: auto; padding: 20px; font-family: var(--font-mono); font-size: 13px; }
+    #arena { position: fixed; left: -3000px; top: 0; width: 1200px; height: 700px; }
+    .ok { color: #a8ff3e; }
+    .mal { color: #ff4757; }
+    pre { white-space: pre-wrap; margin: 2px 0 10px 20px; color: #ffb0b0; font-size: 11px; }
+  </style>
+</head>
+<body>
+  <h1 style="font-size:16px">Prueba de humo</h1>
+  <div id="salida"></div>
+  <div id="arena"><canvas id="c"></canvas><div id="r"></div></div>
+
+  <script type="module">
+    import { GAMES } from './games/manifest.js';
+    import { Engine } from './core/engine.js';
+    import { input } from './core/input.js';
+    import { audio } from './core/audio.js';
+    import { haptics } from './core/haptics.js';
+    import { GameUI } from './core/ui.js';
+    import { touchbar } from './core/touchbar.js';
+    import { Particles, seeded } from './core/math2d.js';
+    import { getPlayers, applyPlayerColors } from './core/storage.js';
+
+    const salida = document.getElementById('salida');
+    const arena = document.getElementById('arena');
+    const players = getPlayers();
+    applyPlayerColors(players);
+    haptics.enabled = false;   // sin ruido ni vibración durante la prueba
+
+    let fallos = 0;
+
+    for (const g of GAMES) {
+      const linea = document.createElement('div');
+      salida.appendChild(linea);
+      const errores = [];
+      const usaCanvas = g.render !== 'dom';
+
+      // Arena limpia por juego
+      arena.innerHTML = '<canvas id="c"></canvas><div id="r"></div>';
+      const canvas = arena.querySelector('#c');
+      const root = arena.querySelector('#r');
+      let engine = null, ui = null, juego = null;
+
+      try {
+        const mod = await import(`./games/${g.carpeta}/game.js`);
+        ui = new GameUI(arena, players);
+        if (usaCanvas) {
+          engine = new Engine({ canvas, update: () => {}, render: () => {}, width: 1200, height: 700 });
+        }
+        const ctx = {
+          meta: g, players, settings: {}, input, audio, haptics, ui, touchbar,
+          particles: new Particles(300), rng: seeded(12345),
+          root, frame: arena, canvas: usaCanvas ? canvas : null,
+          c: usaCanvas ? canvas.getContext('2d') : null,
+          engine, W: 1200, H: 700,
+          shake: () => {}, finish: () => {}, record: () => false, exit: () => {},
+          // Sin sala de mandos abierta, pero con la misma forma que en el shell:
+          // los juegos que reparten información secreta al iPad la llaman en
+          // init(), y sin este doble reventaban en la prueba y no en el juego.
+          mando: {
+            activo: () => false, haySala: false,
+            perfil: () => {}, restaurar: () => {}, vibrar: () => {},
+          },
+        };
+
+        juego = mod.create(ctx);
+        if (!juego) throw new Error('create() no devolvió nada');
+
+        await juego.init?.();
+        juego.onStart?.();
+
+        // 45 fotogramas ≈ 0,75 s de partida
+        for (let i = 0; i < 45; i++) {
+          juego.update?.(1 / 60);
+          juego.render?.();
+          input.endFrame();
+        }
+        juego.resize?.(1000, 600);
+        juego.update?.(1 / 60);
+        juego.render?.();
+        juego.destroy?.();
+      } catch (e) {
+        errores.push(e.stack || String(e));
+      } finally {
+        try { engine?.destroy(); } catch {}
+        try { ui?.destroy(); } catch {}
+      }
+
+      if (errores.length) {
+        fallos++;
+        linea.innerHTML = `<span class="mal">✗ ${g.id}</span>`;
+        const pre = document.createElement('pre');
+        pre.textContent = errores.join('\n');
+        salida.appendChild(pre);
+      } else {
+        linea.innerHTML = `<span class="ok">✓ ${g.id}</span>`;
+      }
+    }
+
+    const resumen = document.createElement('h2');
+    resumen.id = 'resumen';
+    resumen.style.fontSize = '15px';
+    resumen.className = fallos ? 'mal' : 'ok';
+    resumen.textContent = fallos === 0
+      ? `TODOS OK — ${GAMES.length} juegos arrancan, corren y se destruyen sin errores`
+      : `${fallos} de ${GAMES.length} juegos con errores`;
+    salida.prepend(resumen);
+    window.__resultado = { total: GAMES.length, fallos };
+  </script>
+</body>
+</html>
