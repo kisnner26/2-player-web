@@ -713,7 +713,11 @@ function abrirSala() {
           Cierra este servidor y arranca el arcade con <b>start.command</b>
           (doble clic en Finder), o desde la terminal:
         </p>
-        <div class="sala-url"><code>node server/servidor.js</code></div>`;
+        <div class="sala-url"><code>node server/servidor.js</code></div>
+        <div class="ui-card-actions" style="margin-top:14px">
+          <button class="btn" id="sala-reintentar">Reintentar</button>
+        </div>`;
+      cuerpo.querySelector('#sala-reintentar')?.addEventListener('click', () => { audio.select(); red.abrir(); });
       return;
     }
 

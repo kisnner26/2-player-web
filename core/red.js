@@ -33,6 +33,7 @@ class Red {
     this._oyentes = new Set();
     this._perfilVigente = new Map();
     this._reintento = null;
+    this._limite = null;
   }
 
   /** Suscribe un callback a cualquier cambio de estado. Devuelve el desuscriptor. */
@@ -55,6 +56,18 @@ class Red {
    */
   abrir() {
     if (this.ws && this.estado !== 'error') return;
+
+    // Una página https o abierta como archivo no puede hablar con el servidor
+    // de salas: el navegador bloquea ws:// desde ahí. Se avisa sin esperar.
+    if (location.protocol === 'https:') {
+      this._fallar('Esta versión publicada (https) no puede hospedar salas. Los mandos táctiles necesitan el servidor local: abre el arcade con start.command.');
+      return;
+    }
+    if (location.protocol === 'file:' || !location.host) {
+      this._fallar('El arcade está abierto como archivo. Arráncalo con start.command para usar los mandos táctiles.');
+      return;
+    }
+
     this.estado = 'conectando';
     this._avisar();
 
@@ -66,6 +79,13 @@ class Red {
       return;
     }
     this.ws = ws;
+
+    // Nunca se queda esperando para siempre: si en 5 s no hay sala, se cuenta.
+    clearTimeout(this._limite);
+    this._limite = setTimeout(() => {
+      if (this.estado !== 'conectando') return;
+      this._fallar(`El servidor de ${location.host} no respondió. Cierra otros servidores en ese puerto y abre el arcade con start.command.`);
+    }, 5000);
 
     ws.addEventListener('open', () => {
       ws.send(JSON.stringify({ tipo: 'crear', codigo: sessionStorage.getItem(CLAVE_SALA) || undefined }));
@@ -99,6 +119,11 @@ class Red {
   }
 
   _fallar(motivo) {
+    clearTimeout(this._limite);
+    clearTimeout(this._reintento);
+    const ws = this.ws;
+    this.ws = null;        // así `abrir()` puede reintentar desde cero
+    try { ws?.close(); } catch { /* ya estaba cerrado */ }
     this.estado = 'error';
     this.motivo = motivo;
     this._avisar();
@@ -107,6 +132,7 @@ class Red {
   _recibir(msg) {
     switch (msg.tipo) {
       case 'sala': {
+        clearTimeout(this._limite);
         const eraNueva = this.estado !== 'abierta';
         this.estado = 'abierta';
         this.codigo = msg.codigo;

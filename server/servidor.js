@@ -71,6 +71,7 @@ function servirArchivo(req, res) {
       // haber validador, y las ediciones parecen no surtir efecto.
       'cache-control': 'no-store, must-revalidate',
       pragma: 'no-cache',
+      'x-2pa': 'salas',   // start.command lo usa para reconocer este servidor
     });
     res.end(datos);
   });

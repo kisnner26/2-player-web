@@ -24,12 +24,29 @@ cd "$(dirname "$0")" || exit 1
 
 PUERTO=8765
 
-# Si ya hay algo escuchando en el puerto, se reutiliza en vez de fallar.
-if lsof -nP -iTCP:$PUERTO -sTCP:LISTEN >/dev/null 2>&1; then
-  echo "Ya había un servidor en el puerto $PUERTO. Abriendo el menú…"
-  open "http://localhost:$PUERTO/index.html"
-  exit 0
-fi
+# Finder abre los .command con un PATH mínimo, y Node casi nunca está ahí. Sin
+# esto el script no lo encuentra, cae al servidor de reserva y los mandos
+# táctiles se quedan sin sala. Se añaden los sitios habituales de Node.
+export PATH="/opt/homebrew/bin:/opt/homebrew/sbin:/usr/local/bin:$HOME/.bun/bin:$HOME/.volta/bin:$PATH"
+[ -s "$HOME/.nvm/nvm.sh" ] && . "$HOME/.nvm/nvm.sh" >/dev/null 2>&1
+
+# Si el puerto está ocupado: si es el servidor de este arcade (con salas) se
+# reutiliza; si es otra cosa —por ejemplo un servidor de reserva que quedó
+# abierto— se prueba el puerto siguiente en vez de servir un arcade sin mandos.
+while lsof -nP -iTCP:$PUERTO -sTCP:LISTEN >/dev/null 2>&1; do
+  if curl -sI -m 2 "http://localhost:$PUERTO/index.html" 2>/dev/null | grep -qi '^x-2pa: salas'; then
+    echo "Ya había un servidor del arcade en el puerto $PUERTO. Abriendo el menú…"
+    open "http://localhost:$PUERTO/index.html"
+    exit 0
+  fi
+  echo "El puerto $PUERTO lo usa otro servidor sin salas de mando; pruebo el siguiente."
+  PUERTO=$((PUERTO + 1))
+  if [ "$PUERTO" -gt 8785 ]; then
+    echo "No encontré un puerto libre entre 8765 y 8785."
+    read -r -p "Pulsa Intro para cerrar…"
+    exit 1
+  fi
+done
 
 echo "╔══════════════════════════════════════════════╗"
 echo "║              2 PLAYER ARCADE                 ║"
